@@ -1,0 +1,182 @@
+/* Colours:
+    oblivion #100819
+    foundation #1b1626
+    slate #241e31
+
+    beige #e3cfba
+    eggshell #e9dfd4
+    ether #f4f1ee
+
+    indigo #5e8ec7
+    teal #41ac99
+    lime #a7b774
+    cream #e7b789
+    flamingo #ef99a0
+    violet #ba91ce
+
+    verdant #258c31
+    gold #d09124
+    pop-star #e83d7f
+*/
+/* Defaults */
+* {
+    box-sizing: border-box;
+    background-color: inherit;
+    color: inherit;
+    padding: 0;
+    margin: 0; /* should be exclusively controlled by parents */
+    border: 0 inherit;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+    list-style-position: inside;
+}
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+body {
+    height: 100%;
+    width: 100%;
+}
+/* Theme */
+@scope (.dark) {
+    :scope {
+        background-color: #100819; /* oblivion */
+        border-color: #f4f1ee; /* ether */
+        color: #f4f1ee; /* ether */
+    }
+    ::selection {
+        background-color: #41AC99; /* teal */
+        border-color: #100819; /* oblivion */
+        color: #100819; /* oblivion */
+    }
+    .ramp {
+        background-color: #1b1626; /* foundation */
+    }
+    .ramp .ramp {
+        background-color: #241e31; /* slate */
+    }
+    :scope.scrollable, .scrollable {
+        scrollbar-color: #f4f1ee transparent; /* ether */
+    }
+}
+@scope (.light) {
+    :scope {
+        background-color: #f4f1ee; /* ether */
+        border-color: #100819; /* oblivion */
+        color: #100819; /* oblivion */
+    }
+    ::selection {
+        background-color: #ef99a0; /* flamingo */
+        border-color: #f4f1ee; /* ether */
+        color: #f4f1ee; /* ether */
+    }
+    .ramp {
+        background-color: #e9dfd4; /* eggshell  */
+    }
+    .ramp .ramp {
+        background-color: #e3cfba; /* beige */
+    }
+    :scope.scrollable, .scrollable {
+        scrollbar-color: #100819 transparent; /* oblivion */
+    }
+}
+/* Text */
+a {
+    text-decoration: underline 1px;
+}
+a:visited {
+    text-decoration: underline dotted 1px;
+}
+b {
+    font-weight: 800;
+}
+h1 {
+    font-size: 4rem;
+}
+h2 {
+    font-size: 2.5rem;
+}
+h3 {
+    font-size: 2rem;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Russo One', sans-serif;
+    font-weight: normal;
+}
+h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+    font-weight: bolder;
+}
+code {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-ligatures: normal;
+}
+div {
+    border-radius: 1rem;
+}
+/* Flex Structuring */
+.container {
+    padding: 1rem;
+    gap: 1rem;
+    display: flex;
+}
+.vertical {
+    flex-flow: column;
+}
+.horizontal {
+    flex-flow: row;
+}
+.wrapping {
+    flex-wrap: wrap;
+}
+.scrollable {
+    flex-wrap: nowrap;
+    overflow: scroll;
+    scrollbar-gutter: stable;
+}
+.container.full {
+    align-content: stretch;
+    align-items: stretch;
+}
+.container.packed {
+    gap: 0;
+    padding: 0;
+    align-content: stretch;
+}
+.container.packed > * {
+    border-radius: 0;
+}
+.filling {
+    flex-grow: 1;
+}
+.card {
+    max-width: 16rem;
+}
+/* Distinctions */
+.bordered {
+    border: 2px solid;
+    padding: 1rem;
+}
+.attention {
+    color: #e83d7f; /* pop-star */
+    border-color: #e83d7f; /* pop-star */
+}
+.action {
+    color: #f4f1ee; /* ether */
+    background-color: #e83d7f; /* pop-star */
+    border: 6px double;
+}
+.action.scrollable {
+    scrollbar-color: #f4f1ee transparent; /* ether */
+}
+details > *:not(summary) {
+    margin-left: 1rem;
+}
+/* Specifics */
+#content {
+    width: 60%;
+    margin: 0 auto;
+}
+#root {
+    height: 100vh
+}
