@@ -88,6 +88,9 @@ a {
 a:visited {
     text-decoration: underline dotted 1px;
 }
+i {
+    color: #258c31 /* verdant */
+}
 b {
     font-weight: 800;
 }
@@ -110,6 +113,10 @@ h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
 code {
     font-family: 'JetBrains Mono', monospace;
     font-variant-ligatures: normal;
+}
+blockquote {
+    padding-left: 1rem;
+    border-left-style: solid;
 }
 div {
     border-radius: 1rem;
@@ -171,12 +178,4 @@ div {
 }
 details > *:not(summary) {
     margin-left: 1rem;
-}
-/* Specifics */
-#content {
-    width: 60%;
-    margin: 0 auto;
-}
-#root {
-    height: 100vh
 }

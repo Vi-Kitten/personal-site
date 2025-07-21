@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <title>the-chiral-product</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Quicksand:wght@300..700&family=Russo+One&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="style.css">
+        </head>
+        <body>
+            <div class="light packed right container" style="height: 100vh;">
+        <div class="filling" style="">
+        
+    </div><div class="dark vertical scrollable container" style="width: 60%; margin: 0 auto;">
+        <h1
+id="the-chiral-product-an-algebraic-approach-to-mutation-in-linearly-typed-systems">The
+Chiral Product: An Algebraic Approach to Mutation in Linearly Typed
+Systems</h1>
+<p>By Violet Quinn</p>
+<blockquote>
+<p>I will show that by adjoining a chiral product type to linear typing
+one can represent objects with channels between them like the
+disjunctive product, but with the added constraint that information only
+flows one way, that is to say that the behaviour of eliminating the past
+cannot depend on the elimination of the future. This produces a finer
+gradation of product types that I will demonstrate invaluable in
+constructing a purely algebraic approach to mutation handling.</p>
+</blockquote>
+<p><em>This paper will make reference to category theory although an
+understanding is not required.</em> <em>It is however expected that the
+reader is aware of linear logic and its common syntax before
+reading.</em></p>
+<h2 id="introduction">Introduction</h2>
+<p>Mutation handling in languages tend to have 3 main goals that up
+until now have formed an impossible triangle: - Safety: Often in the
+form of memory aliasing rules, safety is important to ensure memory is
+not corrupted from the coexistence of incompatible reference types. -
+Versatility: A solution to mutation handling can only be as effective as
+its domain of application is broad, at the end of the day all systems
+have their limits but a system that is too weak can lead its users to
+write against the language and not with it. - Simplicity: Overbearing
+semantics can impose roadblocks on development by requiring large
+type-level refactors for behavioural changes to codebases.</p>
+<p>Most languages have historically opted to ditch safety in favour of
+maximising versatility and simplicity. This naively maximises the space
+of valid programs, falling for same trap of properties like Turing
+completeness, where the insistence that everything be possible provides
+the opportunity to accidentally blow ones own leg off.</p>
+<p>Some languages provide safety and simplicity, usually by leveraging
+calling conventions. The most advanced approach to calling conventions I
+have seen thus-far is that of <a
+href="https://www.hylo-lang.org/">Hylo</a> which provides 4 conventions:
+“let”, “inout”, “set”, and “sink” which correspond to immutable capture,
+mutable capture, uninitialised capture, and move respectively. The
+downside of this is that because captures are not represented in the
+type system - they cannot be processed using custom data-structures -
+only with language provided control flow. It is important to note that
+this is often sufficient for a wide variety of use cases.</p>
+<p>Finally, and gaining traction, are approaches that maximise
+versatility whilst maintaining safety. This includes type level
+abstractions like state monad transformers, lenses, and lifetimes. These
+approaches have a certain virality, often prompting and subsequently
+complicating large refactors. Additionally these approaches often
+undercut the ability in functional languages for function signatures to
+concisely convey the general behaviour of a function by instead
+introducing book-keeping; I believe we can do better.</p>
+<p>I aim to solve the above problems whilst maintaining the deadlock
+free guarantee from linear typing, allowing for the writing of strongly
+normalising programs.</p>
+<h2 id="problem-statement">Problem Statement</h2>
+<p>I will be using <span class="math inline"><em>ā</em></span> to refer
+to the type representing a consumer of type <span
+class="math inline"><em>a</em></span> that cannot be duplicated of
+discarded.</p>
+<p>The typical way to formulate a mutable reference in a linearly typed
+system is to model it as a value-consumer pair: <span
+class="math display">𝕄<em>a</em> := <em>a</em> × <em>ā</em></span> In
+such a system borrowing has the following signature: <span
+class="math display"><em>a</em> → 𝕄<em>a</em> ⊗ <em>a</em></span>
+Importantly these definitions above use two different product types. -
+The conjunctive product <span class="math inline">×</span> provides two
+entirely independent instances which you can do with as you please (this
+is the product type as you are used to it). - The disjunctive product
+<span class="math inline">⊗</span> provides two arbitrarily dependent
+instances which you must handle independently. They are related by
+De-Morgans laws over product types: - <span
+class="math inline">$\overline{a \times b} \cong \bar{a} \otimes
+\bar{b}$</span> - <span class="math inline">$\overline{a \otimes b}
+\cong \bar{a} \times \bar{b}$</span> The interaction between these
+different product types and their limitations is why linear logic is
+deadlock safe, specifically, this interaction looks like the following
+axiom: <span
+class="math display">(<em>a</em>⊗<em>b</em>) × (<em>c</em>⊗<em>d</em>) ⟹ <em>a</em> ⊗ (<em>b</em>×<em>c</em>) ⊗ <em>d</em></span>
+Which allows the linking of disjunctive products together, personally
+this reminds me of the simple running stitch, especially when
+visualising the way the information flow alternates between the
+conjunctive and disjunctive products.</p>
+<p>Now let us consider the following program (in rust inspired
+pseudo-code):</p>
+<pre><code>let mut a = 1
+let mut b = 2
+
+swap (&amp;mut a) (&amp;mut b)
+
+a + b</code></pre>
+<p>Intuitively this should be fine, and with lifetime parameters it is,
+although the goal is to not rely on them for something this straight
+forward.</p>
+<ul>
+<li>First start with a pair of values <span
+class="math inline">ℕ × ℕ</span></li>
+<li>Then borrow each to get a pair of borrows <span
+class="math inline">(𝔹ℕ⊗ℕ) × (𝔹ℕ⊗ℕ)</span></li>
+<li>Apply the linking rule to place the mutable references together
+<span class="math inline">(𝔹ℕ×𝔹ℕ) ⊗ ℕ ⊗ ℕ</span></li>
+<li>And swap our values, annihilating the mutable references and leaving
+us with <span class="math inline">ℕ ⊗ ℕ</span></li>
+<li>Finally we can… combine… oh.</li>
+</ul>
+<p>Our values are now disjunctively combined and must be handled
+separately, and there is no way to avoid this with current linear logic
+as our code does combine <strong>both</strong> the mutable references
+and the resultant values together, it is blind to the following two
+things: - The type <span class="math inline">ℕ</span> has no way to
+<em>send</em> information to anything involved in its creation, and so
+there is no deadlock to avoid by forcing them to be handled
+independently. - The line <code>swap (&amp;mut a) (&amp;mut b)</code>
+depends in no way on the line <span
+class="math inline"><em>a</em> + <em>b</em></span> or anything following
+for that matter there is a sequence to these operations.</p>
+<p>Current linear logic has no way to represent a <em>directed</em> flow
+of information and hence time.</p>
+<p><strong>It is this specific issue that I have now fixed.</strong></p>
+<h2 id="the-chiral-product">The Chiral Product</h2>
+<p>Let us introduce a new <em>associative</em> but <em>chiral</em>
+product type <span class="math inline"><em>a</em> ⋉ <em>b</em></span>
+that provides two directionally dependent instances such that the value
+on the right (which we will call the future) depends on the value of the
+left (which we will call the present) and never the other way
+around.</p>
+<p>Notably this directional flow of information allows us to define it
+as its own conjugate as no directed cycle of dependency could arise:
+<span class="math display">$$\overline{a \ltimes b} \cong \bar{a}
+\ltimes \bar{b}$$</span> By the same argument such a product can be
+interwoven with itself: <span
+class="math display">(<em>a</em>⋉<em>b</em>) × (<em>c</em>⋉<em>d</em>) ⟹ (<em>a</em>×<em>c</em>) ⋉ (<em>b</em>×<em>d</em>)</span>
+&gt; The safety of these axioms will be proven later.</p>
+<p>Finally to make this usable we shall introduce a new modality
+<strong>pure</strong> <span class="math inline">ℙ</span> which disallows
+instances that have other values dependent on how they are used. This
+modality has the following axioms involving the product types: <span
+class="math display">ℙ(<em>a</em>×<em>b</em>) ≅ ℙ<em>a</em> × ℙ<em>b</em></span>
+<span
+class="math display">ℙ(<em>a</em>⋉<em>b</em>) ⟹ <em>a</em> ⋉ ℙ<em>b</em></span>
+Just as one may conjure a channel of type <span
+class="math inline"><em>ā</em> ⊗ <em>a</em></span> one may also conjure
+a <em>directed</em> channel of type <span
+class="math inline">$\overline{\mathbb{P}a} \ltimes
+\mathbb{P}a$</span>.</p>
+<p><strong>And with this we can tackle mutation in a more effective
+manner.</strong></p>
+<h2 id="an-algebraic-approach-to-mutation">An Algebraic Approach to
+Mutation</h2>
+
+    </div><div class="filling" style="">
+        
+    </div>
+    </div>
+        </body>
+    </html>
