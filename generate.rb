@@ -18,10 +18,11 @@ def page title, *elements
     <html lang="en">
         <head>
             <title>#{title}</title>
+            <meta charset="utf-8">
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Quicksand:wght@300..700&family=Russo+One&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="style.css">
+            <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Quicksand:wght@300..700&family=Russo+One&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="/style.css">
         </head>
         <body>
             #{elements.join}
@@ -62,7 +63,7 @@ intro = div ["vertical", "container"], (render_markdown "index/intro.md")
 
 blog_names = ["the-chiral-product"]
 
-blogs = now do
+blogs = now do |;intro|
     intro = render_markdown "index/blogs-intro.md"
     cards = blog_names.map do |blog_name|
         content = render_markdown "blogs/#{blog_name}.md"

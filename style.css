@@ -3,6 +3,8 @@
     foundation #1b1626
     slate #241e31
 
+    neutral #4c6a76
+
     beige #e3cfba
     eggshell #e9dfd4
     ether #f4f1ee
@@ -23,11 +25,10 @@
     box-sizing: border-box;
     background-color: inherit;
     color: inherit;
+    border-color: inherit;
     padding: 0;
     margin: 0; /* should be exclusively controlled by parents */
-    border: 0 inherit;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 500;
+    border: 0;
     list-style-position: inside;
 }
 img, picture, video, canvas, svg {
@@ -59,6 +60,30 @@ body {
     :scope.scrollable, .scrollable {
         scrollbar-color: #f4f1ee transparent; /* ether */
     }
+
+    @scope (div.sourceCode) {
+        :scope {
+            color: inherit;
+            /* width: fit-content; */
+        }
+
+        /* keyword */
+        span.kw {
+            color: #d09124; /* gold */
+            font-weight: bold;
+        }
+
+        /* operator */
+        span.op {
+            color: #e83d7f; /* popstar */
+            font-weight: semi-bold;
+        }
+
+        /* comment */
+        span.co {
+            color: #4c6a76; /* neutral */
+        }
+    }
 }
 @scope (.light) {
     :scope {
@@ -82,6 +107,10 @@ body {
     }
 }
 /* Text */
+p, li {
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 400;
+}
 a {
     text-decoration: underline 1px;
 }
@@ -111,15 +140,20 @@ h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
     font-weight: bolder;
 }
 code {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Fira Code', monospace;
     font-variant-ligatures: normal;
+    font-weight: 500;
 }
 blockquote {
     padding-left: 1rem;
-    border-left-style: solid;
+    border-left: 2px solid;
 }
 div {
     border-radius: 1rem;
+}
+div.sourceCode {
+    border: 2px solid;
+    padding: 1rem;
 }
 /* Flex Structuring */
 .container {
