@@ -7,6 +7,8 @@
 > that is to say that the behaviour of eliminating the past cannot depend on the elimination of the future.
 > This produces a finer gradation of product types that I will demonstrate invaluable in constructing a purely algebraic approach to mutation handling.
 
+*The reader should be familiar with programming using channels and references in strongly typed systems*
+
 ## Introduction
 
 Mutation handling in languages tend to have 3 main goals that up until now have formed an impossible triangle:
@@ -26,38 +28,84 @@ Finally, and gaining traction, are approaches that maximise versatility whilst m
 
 I aim to solve the above problems whilst maintaining the deadlock free guarantee from linear typing, allowing for the writing of strongly normalising languages that are safe, versatile, and simple to use.
 
-## Problem Statement
+## Preface
 
-This section will be using haskell inspired pseudocode.
+Haskell syntax will be used for talking about the type system itself, specifically in terms of the operations we are allowed to do.
+A rust inspired syntax will then be used to describe the programs we would like to represent.
 
-### Setup
+Drop down containing more concise but heavilly technical explanations will be provided for those with the knowledge, feel free to ignore these
 
-I will be using `~a` to refer to the type representing a consumer of type `a` that cannot be duplicated of discarded.
+## Intro To Linear Logic
+<div class="vertical container h2-content">
 
-The typical way to formulate a mutable reference in a linearly typed system is to model it as a value-consumer pair:
-```hs
-type InOut a = a, ~a
-```
-allowing you to modify by value, and send the result to the owner once you are done.
+I will be using `~a` to refer to the type representing a consumer of type `a` that cannot be duplicated or discarded.
 
-In such a system borrowing has the following signature:
-```hs
-borrowMut :: a -> InOut a || a
+### Product Types
 
-type a || b = ~(~a, ~b)
-```
-requiring the introduction of a new product type `||`, called *par* for parallel.
+<div>
+<details><summary><div class="packed horizontal centering container">
+  <span class="attention material-symbols-outlined summary-icon">
+    group_work
+  </span>
+  <div class="spacer"></div>
 
-The regular (conjunctive) product `a, b` provides two entirely **independent** instances which you can do with as you please (this is the product type as you are used to it).
-Whereas *par* (the disjunctive product) `a || b` provides two **arbitrarily dependent** instances which you must handle with care, restricting your options significantly, as you are forced by the rules of linear logic to disallow any form of interaction lest you introduce a deadlock.
+**What constitutes a "product type"?**
+
+</div></summary></details>
+<div class="ramp detail attention-border"><div class="vertical container">
+
+A bifunctor `P` is a **product type** iff:
+
+- `P` is associative, satisfying the [pentagon identity](https://ncatlab.org/nlab/show/pentagon+identity#idea).
+- There is a lifting natural transformation from the conjunctive product (`,`) to `P` that respects the [pentagon identities](https://ncatlab.org/nlab/show/pentagon+identity#idea)
+- There is a lifting natural transformation from `P` to the disjunctive product (`||`) that respects the [pentagon identities](https://ncatlab.org/nlab/show/pentagon+identity#idea).
+- `P` is [strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the conjunctive product (`,`) commuting with the associators and the lifting morphism.
+- `P` is co-[strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the disjunctive product (`||`) commuting with the associators and the lifting morphism.
+
+</div></div>
+</div>
+
+The regular (conjunctive) product type will be written `a, b` and is comprised of two **entirely independent** instances which you can do with as you please, this is the product type as you are used to it.
+
+The parallel (disjunctive) product type will be written `a || b` and is comprised of two **arbitrarily dependent** instances which you must handle with care, restricting your options significantly, as you are forced by the rules of linear logic to disallow any form of interaction lest you introduce a deadlock.
 
 There is however one thing you *are* allowed to do:
 ```hs
 link :: a || b -> c || d -> (a, c) || b || d
 ```
-which provides a way to handle a pair of values with absolute freedom, so long as they originated as parts of independent products.
 
-### Example
+Which provides a way to handle a pair of values with absolute freedom, so long as they originated as parts of independent products.
+
+One of the most important uses of `||` is safely typing channels, for example:
+```hs
+oneshot :: ~a || a
+```
+
+### Continuations
+
+In linear logic a `Future` is simply a consumer of a consumer:
+```hs
+type Future a = ~(~a)
+```
+
+Futures are important as they are the basis of how constructs like the parallel product operate, the values contained within are not merely stored by value, but are accessed by means of providing continuations.
+
+### Naive Mutation
+
+The typical way to formulate a mutable reference in a linearly typed system is to model it as a value-consumer pair:
+```hs
+type InOut a = a, ~a
+```
+
+Allowing you to modify by value, and send the result to the owner once you are done.
+
+In such a system borrowing has the following signature:
+```hs
+borrowMut :: a -> InOut a || a
+```
+
+</div>
+## Problem Statement
 
 Now let us consider the following program:
 

@@ -43,12 +43,10 @@ body {
 @scope (.dark) {
     :scope {
         background-color: #100819; /* oblivion */
-        border-color: #f4f1ee; /* ether */
         color: #f4f1ee; /* ether */
     }
     ::selection {
         background-color: #41AC99; /* teal */
-        border-color: #100819; /* oblivion */
         color: #100819; /* oblivion */
     }
     .ramp {
@@ -59,30 +57,6 @@ body {
     }
     :scope.scrollable, .scrollable {
         scrollbar-color: #f4f1ee transparent; /* ether */
-    }
-
-    @scope (div.sourceCode) {
-        :scope {
-            color: inherit;
-            /* width: fit-content; */
-        }
-
-        /* keyword */
-        span.kw {
-            color: #d09124; /* gold */
-            font-weight: bold;
-        }
-
-        /* operator */
-        span.op {
-            color: #e83d7f; /* popstar */
-            font-weight: semi-bold;
-        }
-
-        /* comment */
-        span.co {
-            color: #4c6a76; /* neutral */
-        }
     }
 }
 @scope (.light) {
@@ -121,22 +95,25 @@ i {
     color: #258c31 /* verdant */
 }
 b {
-    font-weight: 800;
+    font-weight: 700;
 }
 h1 {
     font-size: 4rem;
+    min-height: 5rem;
 }
 h2 {
     font-size: 2.5rem;
+    min-height: 3rem;
 }
 h3 {
     font-size: 2rem;
+    min-height: 2.5rem;
 }
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3 {
     font-family: 'Russo One', sans-serif;
     font-weight: normal;
 }
-h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+h1 code, h2 code, h3 code {
     font-weight: bolder;
 }
 code {
@@ -148,18 +125,80 @@ blockquote {
     padding-left: 1rem;
     border-left: 2px solid;
 }
-div {
-    border-radius: 1rem;
+@scope (div.sourceCode) {
+    :scope {
+        color: inherit;
+        width: fit-content;
+        border: 2px solid;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+
+    /* keyword */
+    span.kw {
+        color: #d09124; /* gold */
+        font-weight: bold;
+    }
+
+    /* operator */
+    span.op {
+        color: #e83d7f; /* popstar */
+        font-weight: semi-bold;
+    }
+
+    /* comment */
+    span.co {
+        color: #4c6a76; /* neutral */
+    }
 }
-div.sourceCode {
-    border: 2px solid;
-    padding: 1rem;
+/* Details Setup */
+.summary-icon {
+    transition: font-variation-settings 200ms ease-out;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+details[open] > summary .summary-icon {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+details > summary {
+    list-style: none;
+    cursor: pointer;
+}
+.detail {
+    border-left: 2px solid;
+    margin-left: 11px;
+    padding-left: max(11px, calc(2rem - 13px));
+    padding-top: 0rem;
+    padding-bottom: 0rem;
+    padding-right: 0rem;
+    border-bottom-right-radius: 2rem;
+    border-top-left-radius: 0rem;
+    border-bottom-left-radius: 0rem;
+    border-top-right-radius: 2rem;
+
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: 200ms grid-template-rows ease-out, 200ms padding ease-out;
+}
+details ~ .detail > * {
+    overflow: hidden;
+}
+details[open] ~ .detail {
+    grid-template-rows: 1fr;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-right: 2rem;
 }
 /* Flex Structuring */
 .container {
-    padding: 1rem;
-    gap: 1rem;
+    gap: 2rem;
     display: flex;
+}
+.centering {
+    align-items: center;
+}
+.padded {
+    padding: 2rem;
+    border-radius: 2rem;
 }
 .vertical {
     flex-flow: column;
@@ -172,34 +211,56 @@ div.sourceCode {
 }
 .scrollable {
     flex-wrap: nowrap;
-    overflow: scroll;
     scrollbar-gutter: stable;
 }
-.container.full {
+.scrollable.vertical {
+    overflow-y: scroll;
+}
+.scrollable.horizontal {
+    overflow-x: scroll;
+}
+.full {
     align-content: stretch;
     align-items: stretch;
 }
-.container.packed {
+.packed {
     gap: 0;
     padding: 0;
     align-content: stretch;
 }
-.container.packed > * {
+.packed > * {
     border-radius: 0;
 }
 .filling {
     flex-grow: 1;
 }
-.card {
-    max-width: 16rem;
+/* Grid Structuring */
+.stack {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+    grid-template-areas: "full";
+}
+.stack > * {
+    grid-area: full;
+}
+.panel {
+    justify-self: stretch;
+    align-self: stretch;
+}
+/* Misc Structuring */
+.spacer {
+    height: 0.5rem;
+    width: 0.5rem;
 }
 /* Distinctions */
 .bordered {
     border: 2px solid;
-    padding: 1rem;
 }
 .attention {
     color: #e83d7f; /* pop-star */
+}
+.attention-border {
     border-color: #e83d7f; /* pop-star */
 }
 .action {
@@ -210,6 +271,51 @@ div.sourceCode {
 .action.scrollable {
     scrollbar-color: #f4f1ee transparent; /* ether */
 }
-details > *:not(summary) {
-    margin-left: 1rem;
+/* Blog Specific */
+@scope (.blog) {
+    h2 {
+        position: sticky;
+        top: 0rem;
+        z-index: 5;
+    }
+    h3 {
+        position: sticky;
+        top: calc(3rem + 6px);
+        z-index: 4;
+    }
+    h1, h2, h3 {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        border-bottom: 2px solid #258c31; /* neutral */
+    }
+}
+@scope (.dark) {
+    @scope (.blog) {
+        h2::before, h3::before {
+            content: "";
+            position: absolute;
+            top: -1rem;
+            left: 0;
+            width: 100%;
+            height: 1rem;
+            background: linear-gradient(to bottom, transparent 0%, #100819 100%);
+            pointer-events: none;
+            z-index: 5;
+        }
+    }
+}
+@scope (.light) {
+    @scope (.blog) {
+        h2::before, h3::before {
+            content: "";
+            position: absolute;
+            top: -1rem;
+            left: 0;
+            width: 100%;
+            height: 1rem;
+            background: linear-gradient(to bottom, transparent 0%, #f4f1ee 100%);
+            pointer-events: none;
+            z-index: 5;
+        }
+    }
 }

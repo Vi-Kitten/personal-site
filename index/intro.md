@@ -7,6 +7,6 @@ Nothing satisfies me more then a well crafted abstraction that not only solves t
 but describes it so naturally that no desire is left save for a truly radical reimagining.
 
 > I dream of an ecosystem that treats software as an art in this way,
-> where problems are deliberated over until they can truly be called solved.
+> where problems are deliberated over until they can truly be called **solved**.
 
 I hope you find what you are looking for on my site!

@@ -22,7 +22,10 @@ def page title, *elements
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Quicksand:wght@300..700&family=Russo+One&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24..48,400,0..1,0" rel="stylesheet" />
             <link rel="stylesheet" href="/style.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+            <script src="/main.js"></script>
         </head>
         <body>
             #{elements.join}
@@ -30,10 +33,16 @@ def page title, *elements
     </html>}
 end
 
+# specifies default themeing in case js is not enabled
+def primary 
+    ["primary", "dark"]
+end
+
 def write_standard_page path, name, *elements
     File.open(path, 'w') do |file|
-        content = div ["dark", "vertical", "scrollable", "container"], *elements, style: "width: 60%; margin: 0 auto;"
-        root = div ["light", "packed", "right", "container"], filling, content, filling, style: "height: 100vh;"
+        content = div ["vertical", "packed", "scrollable", "padded", "container"], *elements, style: "width: 60%; margin: 0 auto;"
+        side = div ["filling ramp"]
+        root = div [*primary, "packed", "horizontal", "padded", "container"], side, content, side, style: "height: 100vh;"
         generated = page name, root
         file.puts generated
     end
@@ -45,33 +54,25 @@ def div classes, *elements, style: ""
     </div>}
 end
 
-def filling
-    div ["filling"]
-end
-
-def card *elements
-    div ["bordered", "card"], *elements
-end
-
 def render_markdown path
     File.open(path, 'r') do |file|
         PandocRuby.convert(file.read, from: :markdown, to: :html)
     end
 end
 
-intro = div ["vertical", "container"], (render_markdown "index/intro.md")
+intro = div ["vertical", "padded", "container"], (render_markdown "index/intro.md")
 
 blog_names = ["the-chiral-product"]
 
 blogs = now do |;intro|
     intro = render_markdown "index/blogs-intro.md"
     cards = blog_names.map do |blog_name|
-        content = render_markdown "blogs/#{blog_name}.md"
+        content = div ["vertical", "padded", "container", "blog"], (render_markdown "blogs/#{blog_name}.md")
         write_standard_page "blogs/#{blog_name}.html", blog_name, content
-        card (render_markdown "blogs/#{blog_name}-card.md")
+        div ["bordered"], (render_markdown "blogs/#{blog_name}-card.md")
     end
-    card_container = div ["horizontal", "full", "wrapping", "container"], *cards
-    div ["ramp", "vertical", "container"], intro, card_container
+    card_container = div ["horizontal", "full", "wrapping", "padded", "container"], *cards
+    div ["ramp", "vertical", "padded", "container"], intro, card_container
 end
 
 write_standard_page "generated.html", "Kitsune Vi Portfolio Site", intro, blogs

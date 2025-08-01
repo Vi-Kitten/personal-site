@@ -6,13 +6,17 @@
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Quicksand:wght@300..700&family=Russo+One&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24..48,400,0..1,0" rel="stylesheet" />
             <link rel="stylesheet" href="/style.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+            <script src="/main.js"></script>
         </head>
         <body>
-            <div class="light packed right container" style="height: 100vh;">
-        <div class="filling" style="">
+            <div class="primary dark packed horizontal padded container" style="height: 100vh;">
+        <div class="filling ramp" style="">
         
-    </div><div class="dark vertical scrollable container" style="width: 60%; margin: 0 auto;">
+    </div><div class="vertical packed scrollable padded container" style="width: 60%; margin: 0 auto;">
+        <div class="vertical padded container blog" style="">
         <h1
 id="the-chiral-product-an-algebraic-approach-to-mutation-in-linearly-typed-systems">The
 Chiral Product: An Algebraic Approach to Mutation in Linearly Typed
@@ -27,6 +31,8 @@ cannot depend on the elimination of the future. This produces a finer
 gradation of product types that I will demonstrate invaluable in
 constructing a purely algebraic approach to mutation handling.</p>
 </blockquote>
+<p><em>The reader should be familiar with programming using channels and
+references in strongly typed systems</em></p>
 <h2 id="introduction">Introduction</h2>
 <p>Mutation handling in languages tend to have 3 main goals that up
 until now have formed an impossible triangle:</p>
@@ -61,44 +67,104 @@ can be hard to encapsulate.</p>
 <p>I aim to solve the above problems whilst maintaining the deadlock
 free guarantee from linear typing, allowing for the writing of strongly
 normalising languages that are safe, versatile, and simple to use.</p>
-<h2 id="problem-statement">Problem Statement</h2>
-<p>This section will be using haskell inspired pseudocode.</p>
-<h3 id="setup">Setup</h3>
+<h2 id="preface">Preface</h2>
+<p>Haskell syntax will be used for talking about the type system itself,
+specifically in terms of the operations we are allowed to do. A rust
+inspired syntax will then be used to describe the programs we would like
+to represent.</p>
+<p>Drop down containing more concise but heavilly technical explanations
+will be provided for those with the knowledge, feel free to ignore
+these</p>
+<h2 id="intro-to-linear-logic">Intro To Linear Logic</h2>
+<div class="vertical container h2-content">
 <p>I will be using <code>~a</code> to refer to the type representing a
-consumer of type <code>a</code> that cannot be duplicated of
+consumer of type <code>a</code> that cannot be duplicated or
 discarded.</p>
-<p>The typical way to formulate a mutable reference in a linearly typed
-system is to model it as a value-consumer pair:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">InOut</span> a <span class="ot">=</span> a, <span class="op">~</span>a</span></code></pre></div>
-<p>allowing you to modify by value, and send the result to the owner
-once you are done.</p>
-<p>In such a system borrowing has the following signature:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">borrowMut ::</span> a <span class="ot">-&gt;</span> <span class="dt">InOut</span> a <span class="op">||</span> a</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> a <span class="op">||</span> b <span class="ot">=</span> <span class="op">~</span>(<span class="op">~</span>a, <span class="op">~</span>b)</span></code></pre></div>
-<p>requiring the introduction of a new product type <code>||</code>,
-called <em>par</em> for parallel.</p>
-<p>The regular (conjunctive) product <code>a, b</code> provides two
-entirely <strong>independent</strong> instances which you can do with as
-you please (this is the product type as you are used to it). Whereas
-<em>par</em> (the disjunctive product) <code>a || b</code> provides two
-<strong>arbitrarily dependent</strong> instances which you must handle
-with care, restricting your options significantly, as you are forced by
-the rules of linear logic to disallow any form of interaction lest you
-introduce a deadlock.</p>
+<h3 id="product-types">Product Types</h3>
+<div>
+<details>
+<summary>
+<div class="packed horizontal centering container">
+<span class="attention material-symbols-outlined summary-icon">
+group_work </span>
+<div class="spacer">
+
+</div>
+<p><strong>What constitutes a “product type”?</strong></p>
+</div>
+</summary>
+</details>
+<div class="ramp detail attention-border">
+<div class="vertical container">
+<p>A bifunctor <code>P</code> is a <strong>product type</strong>
+iff:</p>
+<ul>
+<li><code>P</code> is associative, satisfying the <a
+href="https://ncatlab.org/nlab/show/pentagon+identity#idea">pentagon
+identity</a>.</li>
+<li>There is a lifting natural transformation from the conjunctive
+product (<code>,</code>) to <code>P</code> that respects the <a
+href="https://ncatlab.org/nlab/show/pentagon+identity#idea">pentagon
+identities</a></li>
+<li>There is a lifting natural transformation from <code>P</code> to the
+disjunctive product (<code>||</code>) that respects the <a
+href="https://ncatlab.org/nlab/show/pentagon+identity#idea">pentagon
+identities</a>.</li>
+<li><code>P</code> is <a
+href="https://ncatlab.org/nlab/show/tensorial+strength#definition">strong</a>
+over the conjunctive product (<code>,</code>) commuting with the
+associators and the lifting morphism.</li>
+<li><code>P</code> is co-<a
+href="https://ncatlab.org/nlab/show/tensorial+strength#definition">strong</a>
+over the disjunctive product (<code>||</code>) commuting with the
+associators and the lifting morphism.</li>
+</ul>
+</div>
+</div>
+</div>
+<p>The regular (conjunctive) product type will be written
+<code>a, b</code> and is comprised of two <strong>entirely
+independent</strong> instances which you can do with as you please, this
+is the product type as you are used to it.</p>
+<p>The parallel (disjunctive) product type will be written
+<code>a || b</code> and is comprised of two <strong>arbitrarily
+dependent</strong> instances which you must handle with care,
+restricting your options significantly, as you are forced by the rules
+of linear logic to disallow any form of interaction lest you introduce a
+deadlock.</p>
 <p>There is however one thing you <em>are</em> allowed to do:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">link ::</span> a <span class="op">||</span> b <span class="ot">-&gt;</span> c <span class="op">||</span> d <span class="ot">-&gt;</span> (a, c) <span class="op">||</span> b <span class="op">||</span> d</span></code></pre></div>
-<p>which provides a way to handle a pair of values with absolute
+<div class="sourceCode" id="cb1"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">link ::</span> a <span class="op">||</span> b <span class="ot">-&gt;</span> c <span class="op">||</span> d <span class="ot">-&gt;</span> (a, c) <span class="op">||</span> b <span class="op">||</span> d</span></code></pre></div>
+<p>Which provides a way to handle a pair of values with absolute
 freedom, so long as they originated as parts of independent
 products.</p>
-<h3 id="example">Example</h3>
+<p>One of the most important uses of <code>||</code> is safely typing
+channels, for example:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">oneshot ::</span> <span class="op">~</span>a <span class="op">||</span> a</span></code></pre></div>
+<h3 id="continuations">Continuations</h3>
+<p>In linear logic a <code>Future</code> is simply a consumer of a
+consumer:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Future</span> a <span class="ot">=</span> <span class="op">~</span>(<span class="op">~</span>a)</span></code></pre></div>
+<p>Futures are important as they are the basis of how constructs like
+the parallel product operate, the values contained within are not merely
+stored by value, but are accessed by means of providing
+continuations.</p>
+<h3 id="naive-mutation">Naive Mutation</h3>
+<p>The typical way to formulate a mutable reference in a linearly typed
+system is to model it as a value-consumer pair:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">InOut</span> a <span class="ot">=</span> a, <span class="op">~</span>a</span></code></pre></div>
+<p>Allowing you to modify by value, and send the result to the owner
+once you are done.</p>
+<p>In such a system borrowing has the following signature:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode hs"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">borrowMut ::</span> a <span class="ot">-&gt;</span> <span class="dt">InOut</span> a <span class="op">||</span> a</span></code></pre></div>
+</div>
+<h2 id="problem-statement">Problem Statement</h2>
 <p>Now let us consider the following program:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode rs"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">mut</span> a <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">mut</span> b <span class="op">=</span> <span class="dv">2</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>swap (<span class="op">&amp;</span><span class="kw">mut</span> a) (<span class="op">&amp;</span><span class="kw">mut</span> b)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>a <span class="op">+</span> b</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rs"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">mut</span> a <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">mut</span> b <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>swap (<span class="op">&amp;</span><span class="kw">mut</span> a) (<span class="op">&amp;</span><span class="kw">mut</span> b)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>a <span class="op">+</span> b</span></code></pre></div>
 <p>Let us try and construct this with the tools above.</p>
 <ul>
 <li>First we start with a pair of values <code>1, 2</code> of type
@@ -149,7 +215,8 @@ is the <strong>future</strong> value.</p>
 <h2 id="an-algebraic-approach-to-mutation">An Algebraic Approach to
 Mutation</h2>
 
-    </div><div class="filling" style="">
+    </div>
+    </div><div class="filling ramp" style="">
         
     </div>
     </div>
