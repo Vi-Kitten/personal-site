@@ -1,6 +1,9 @@
 require 'pandoc-ruby'
 require 'now-do'
 
+Dir.mkdir('site') unless Dir.exist?('site')
+Dir.mkdir('site/blogs') unless Dir.exist?('site/blogs')
+
 def with_classes *classes
     if classes.nil?
         ""
@@ -54,25 +57,68 @@ def div classes, *elements, style: ""
     </div>}
 end
 
+def tape
+    div ["tape"]
+end
+
+def under_construction
+    crane = %Q{<img src="/crane.svg" style="height: 6rem; width: 6rem;">}
+    message = %Q{<p style="font-size: 3rem;">UNDER CONSTRUTION</p>}
+    div ["horizontal", "centering", "warning", "filling", "very-padded", "container"], crane, message, style: "justify-content: center;"
+end
+
+def wip
+    %Q{<span class="warning"><span class="material-symbols-outlined">construction</span></span>}
+end
+
 def render_markdown path
     File.open(path, 'r') do |file|
         PandocRuby.convert(file.read, from: :markdown, to: :html)
     end
 end
 
-intro = div ["vertical", "padded", "container"], (render_markdown "index/intro.md")
+class PageData
+    attr_reader :name
+    attr_reader :excerpt
 
-blog_names = ["the-chiral-product"]
-
-blogs = now do |;intro|
-    intro = render_markdown "index/blogs-intro.md"
-    cards = blog_names.map do |blog_name|
-        content = div ["vertical", "padded", "container", "blog"], (render_markdown "blogs/#{blog_name}.md")
-        write_standard_page "blogs/#{blog_name}.html", blog_name, content
-        div ["bordered"], (render_markdown "blogs/#{blog_name}-card.md")
+    def initialize name, excerpt, tags={}
+        @name = name
+        @tags = tags
+        @excerpt = excerpt
     end
-    card_container = div ["horizontal", "full", "wrapping", "padded", "container"], *cards
-    div ["ramp", "vertical", "padded", "container"], intro, card_container
+
+    def is id, default: false
+        @tags.fetch(id, default)
+    end
+
+    def tags
+        html = []
+        if not is :complete then html.push wip end
+        html
+    end
 end
 
-write_standard_page "generated.html", "Kitsune Vi Portfolio Site", intro, blogs
+intro = div ["vertical", "padded", "container"], (render_markdown "content/intro.md")
+
+blogs = {
+    "the-chiral-product" => PageData.new("The Chiral Product", "<p>An algebraic approach to mutation in linearly typed systems.</p>")
+}
+
+blog_links = now do |;intro|
+    intro = render_markdown "content/blogs-intro.md"
+    cards = blogs.map do |blog_name, page_data|
+        prose = div ["vertical", "padded", "container", "blog"], (render_markdown "content/blogs/#{blog_name}.md")
+        content = if page_data.is :complete then
+            div ["vertical", "packed", "container"], prose
+        else
+            div ["vertical", "packed", "container"], prose, tape, under_construction
+        end
+        write_standard_page "site/blogs/#{blog_name}.html", page_data.name, content
+        title = div ["centering", "horizontal", "container"], %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}
+        div ["ramp", "detail"], title, page_data.excerpt, style: "flex-grow: 1;"
+    end
+    card_container = div ["horizontal", "full", "wrapping", "padded", "container"], *cards
+    div ["vertical", "padded", "container"], intro, card_container
+end
+
+write_standard_page "site/index.html", "Kitsune Vi Portfolio Site", intro, blog_links, tape, under_construction

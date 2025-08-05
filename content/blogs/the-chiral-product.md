@@ -1,13 +1,23 @@
 # The Chiral Product: An Algebraic Approach to Mutation in Linearly Typed Systems
 
-\- By Violet Quinn
-
 > I will show that by adjoining a chiral product type to linear typing one can represent objects with channels between them like the disjunctive product,
 > but with the added constraint that information only flows one way,
 > that is to say that the behaviour of eliminating the past cannot depend on the elimination of the future.
 > This produces a finer gradation of product types that I will demonstrate invaluable in constructing a purely algebraic approach to mutation handling.
 
 *The reader should be familiar with programming using channels and references in strongly typed systems*
+
+<div class="horizontal container" style="gap: 1rem;">
+
+*The symbol*
+
+<details><summary>
+<span class="attention material-symbols-outlined summary-icon">group_work</span>
+</summary></details>
+
+*will incidate a consise category theory dense explanation*
+
+</div>
 
 ## Introduction
 
@@ -20,7 +30,7 @@ Mutation handling in languages tend to have 3 main goals that up until now have 
 - Simplicity:
   Overbearing semantics can impose roadblocks on development by requiring large type-level refactors for behavioural changes to codebases.
 
-Most languages have historically opted to ditch safety in favour of versatility and simplicity. This naively maximises the space of valid programs and in doing so dilouting what it even means for a program to be valid.
+Most languages have historically opted to ditch safety in favour of versatility and simplicity. This naively maximises the space of valid programs and in doing so diluting what it even means for a program to be valid.
 
 Some languages provide safety and simplicity, usually by leveraging calling conventions. The downside of this is that because captures are not represented in the type system - they cannot be processed using custom data-structures - only with language provided control flow. It is important to note that this is often sufficient for a wide variety of use cases.
 
@@ -33,23 +43,36 @@ I aim to solve the above problems whilst maintaining the deadlock free guarantee
 Haskell syntax will be used for talking about the type system itself, specifically in terms of the operations we are allowed to do.
 A rust inspired syntax will then be used to describe the programs we would like to represent.
 
-Drop down containing more concise but heavilly technical explanations will be provided for those with the knowledge, feel free to ignore these
+The type `a -> b` represents a function from type `a` to type `b`.
+
+The type `a ~= b` (with the same precedence as `->`) represents an [isomorphism](https://en.wikipedia.org/wiki/Isomorphism) between type `a` and type `b`
+(meaning `a` and `b` can be swapped between by value without complication).
 
 ## Intro To Linear Logic
+
 <div class="vertical container h2-content">
 
-I will be using `~a` to refer to the type representing a consumer of type `a` that cannot be duplicated or discarded.
+I will be using `~a` to refer to the type representing a consumer of type `a` that cannot be duplicated or discarded, specifically we have a function:
+```hs
+cut :: a, ~a -> ()
+```
+That combines the vaues together, satisfying the consumer.
 
 ### Product Types
 
+The regular (conjunctive) product type will be written `a, b`. Its instances are comprised of two **entirely independent** values which you can do with as you please, this is the product type as you are used to it.
+
+The parallel (disjunctive) product type will be written `a || b`. Its instances are comprised of two **arbitrarily dependent** values which you must handle with care, restricting your options significantly, as you are forced by the rules of linear logic to disallow any form of interaction lest you introduce a deadlock.
+
+Both of these product types are commutative (there exists `a, b ~= b, a` and `a || b ~= b || a`).
+
 <div>
-<details><summary><div class="packed horizontal centering container">
+<details><summary><div class="horizontal centering container" style="gap: 1rem;">
   <span class="attention material-symbols-outlined summary-icon">
     group_work
   </span>
-  <div class="spacer"></div>
 
-**What constitutes a "product type"?**
+**What constitutes a product type?**
 
 </div></summary></details>
 <div class="ramp detail attention-border"><div class="vertical container">
@@ -57,26 +80,29 @@ I will be using `~a` to refer to the type representing a consumer of type `a` th
 A bifunctor `P` is a **product type** iff:
 
 - `P` is associative, satisfying the [pentagon identity](https://ncatlab.org/nlab/show/pentagon+identity#idea).
-- There is a lifting natural transformation from the conjunctive product (`,`) to `P` that respects the [pentagon identities](https://ncatlab.org/nlab/show/pentagon+identity#idea)
-- There is a lifting natural transformation from `P` to the disjunctive product (`||`) that respects the [pentagon identities](https://ncatlab.org/nlab/show/pentagon+identity#idea).
-- `P` is [strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the conjunctive product (`,`) commuting with the associators and the lifting morphism.
-- `P` is co-[strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the disjunctive product (`||`) commuting with the associators and the lifting morphism.
+- There is a lifting natural transformation from the *conjunctive* product (`,`) to `P` that respects the [pentagon identities](https://ncatlab.org/nlab/show/pentagon+identity#idea)
+- There is a lifting natural transformation from `P` to the *disjunctive* product (`||`) that respects the [pentagon identities](https://ncatlab.org/nlab/show/pentagon+identity#idea).
+- `P` is [strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the *conjunctive* product (`,`) commuting with the associators and the lifting morphism.
+- `P` is co-[strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the *disjunctive* product (`||`) commuting with the associators and the lifting morphism.
+
+</div></div><div class="detail"><div class="vertical container">
+
+A **product type** is:
+
+- Associative.
+- An inclusive super-type of (`,`) and an inclusive sub-type of (`||`).
 
 </div></div>
 </div>
-
-The regular (conjunctive) product type will be written `a, b` and is comprised of two **entirely independent** instances which you can do with as you please, this is the product type as you are used to it.
-
-The parallel (disjunctive) product type will be written `a || b` and is comprised of two **arbitrarily dependent** instances which you must handle with care, restricting your options significantly, as you are forced by the rules of linear logic to disallow any form of interaction lest you introduce a deadlock.
 
 There is however one thing you *are* allowed to do:
 ```hs
 link :: a || b -> c || d -> (a, c) || b || d
 ```
-
 Which provides a way to handle a pair of values with absolute freedom, so long as they originated as parts of independent products.
+This is safe because, despite the fact that `b` and `d` can now potentially communicate, they are now composed in parallel, barring future communication and thus preventing a deadlock.
 
-One of the most important uses of `||` is safely typing channels, for example:
+One of the most important uses of `||` is safely typing *channels*, for example:
 ```hs
 oneshot :: ~a || a
 ```
@@ -90,13 +116,39 @@ type Future a = ~(~a)
 
 Futures are important as they are the basis of how constructs like the parallel product operate, the values contained within are not merely stored by value, but are accessed by means of providing continuations.
 
+For example, if you are left with but a single value in the parallel product you may extract it as a future:
+```hs
+extract_parallel :: a || () -> Future a
+```
+
+<div>
+<details><summary><div class="horizontal centering container" style="gap: 1rem;">
+  <span class="attention material-symbols-outlined summary-icon">
+    group_work
+  </span>
+
+**How does a Future behave?**
+
+</div></summary></details>
+<div class="ramp detail attention-border"><div class="vertical container">
+
+The covariant functor `Future` is a monad with where all its algebras are isomorphic to some linear consumer type.
+
+</div></div><div class="detail"><div class="vertical container">
+
+The `Future` generic behaves more or less how it does in most languages with `async`.
+
+Although it lacks the ability to be polled in custom ways.
+
+</div></div>
+</div>
+
 ### Naive Mutation
 
 The typical way to formulate a mutable reference in a linearly typed system is to model it as a value-consumer pair:
 ```hs
 type InOut a = a, ~a
 ```
-
 Allowing you to modify by value, and send the result to the owner once you are done.
 
 In such a system borrowing has the following signature:
@@ -105,10 +157,10 @@ borrowMut :: a -> InOut a || a
 ```
 
 </div>
+
 ## Problem Statement
 
 Now let us consider the following program:
-
 ```rs
 let mut a = 1
 let mut b = 2
@@ -149,3 +201,4 @@ Specifically `a >> b` provides two instances `x: a` and `y: b` such that the val
 > And with this we can tackle mutation in a more effective manner.
 
 ## An Algebraic Approach to Mutation
+
