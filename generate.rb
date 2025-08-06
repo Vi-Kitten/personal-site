@@ -1,6 +1,8 @@
 require 'pandoc-ruby'
 require 'now-do'
 
+Dir.mkdir("site/blogs") unless Dir.exist?("site/blogs")
+
 def with_classes *classes
     if classes.nil?
         ""
