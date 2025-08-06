@@ -1,0 +1,366 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0; /* should be exclusively controlled by parents */
+    border: 0;
+    list-style-position: inside;
+}
+
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+    
+$oblivion: #100819;
+$foundation: #1b1626;
+$slate: #241e31;
+
+$neutral: #4c6a76;
+
+$beige: #e3cfba;
+$eggshell: #e9dfd4;
+$ether: #f4f1ee;
+
+$indigo: #5e8ec7;
+$teal: #41ac99;
+$lime: #a7b774;
+$cream: #e7b789;
+$flamingo: #ef99a0;
+$violet: #ba91ce;
+
+$verdant: #258c31;
+$gold: #d09124;
+$pop-star: #e83d7f;
+
+$warning: #f86d16;
+
+/* Theme */
+
+@mixin dark {
+    :scope {
+        background-color: $oblivion;
+        color: $ether;
+    }
+    ::selection {
+        background-color: $teal;
+        color: $oblivion;
+    }
+    .ramp {
+        background-color: $foundation;
+    }
+    .ramp .ramp {
+        background-color: $slate;
+    }
+    :scope.scrollable, .scrollable {
+        scrollbar-color: $ether transparent;
+    }
+    @scope (.blog) {
+        h2::before, h3::before {
+            background: linear-gradient(to bottom, transparent 0%, $oblivion 100%);
+        }
+    }
+}
+@mixin light {
+    :scope {
+        background-color: $ether;
+        color: $oblivion;
+    }
+    ::selection {
+        background-color: $flamingo;
+        color: $ether;
+    }
+    .ramp {
+        background-color: $eggshell;
+    }
+    .ramp .ramp {
+        background-color: $beige;
+    }
+    :scope.scrollable, .scrollable {
+        scrollbar-color: $oblivion transparent;
+    }
+    @scope (.blog) {
+        h2::before, h3::before {
+            background: linear-gradient(to bottom, transparent 0%, $ether 100%);
+        }
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    @scope (.primary) {
+        @include light
+    }
+
+    @scope (.secondary) {
+        @include dark
+    }
+}
+@media (prefers-color-scheme: dark) {
+    @scope (.primary) {
+        @include dark
+    }
+
+    @scope (.secondary) {
+        @include light
+    }
+}
+@media (prefers-color-scheme: no-preference) {
+    @scope (.primary) {
+        @include dark
+    }
+
+    @scope (.secondary) {
+        @include light
+    }
+}
+
+/* Text */
+
+div, h1, h2, h3, p, ul, li {
+    background-color: inherit;
+    color: inherit;
+    border-color: inherit;
+}
+p, li {
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 400;
+}
+a {
+    text-decoration: underline solid 1px;
+    color: inherit;
+}
+a:visited {
+    color: inherit;
+}
+b {
+    font-weight: 700;
+}
+h1 {
+    font-size: 4rem;
+}
+h2 {
+    font-size: 2.5rem;
+    height: 3.5rem;
+}
+h3 {
+    font-size: 2rem;
+    height: 3rem;
+}
+h1, h2, h3 {
+    font-family: 'Russo One', sans-serif;
+    font-weight: normal;
+    justify-content: center;
+}
+h1 code, h2 code, h3 code {
+    font-weight: bolder;
+}
+code {
+    font-family: 'Fira Code', monospace;
+    font-variant-ligatures: normal;
+    font-weight: 500;
+}
+blockquote {
+    padding-left: 1rem;
+    border-left: 2px solid;
+}
+@scope (div.sourceCode) {
+    :scope {
+        color: inherit;
+        width: fit-content;
+        border: 2px solid;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+
+    /* keyword */
+    span.kw {
+        color: $gold;
+        font-weight: bold;
+    }
+
+    /* operator */
+    span.op {
+        color: $pop-star;
+        font-weight: semi-bold;
+    }
+
+    /* comment */
+    span.co {
+        color: $neutral;
+    }
+}
+
+/* Details Setup */
+
+.summary-icon {
+    transition: font-variation-settings 200ms ease-out;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+details[open] > summary .summary-icon {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+details > summary {
+    list-style: none;
+    cursor: pointer;
+    width: max-content;
+    height: max-content;
+}
+.detail {
+    border-left: 2px solid;
+    margin-left: 11px;
+    padding-left: max(11px, calc(2rem - 13px));
+    border-bottom-right-radius: 2rem;
+    border-top-left-radius: 0rem;
+    border-bottom-left-radius: 0rem;
+    border-top-right-radius: 2rem;
+
+    display: grid;
+    transition: 200ms grid-template-rows ease-out, 200ms padding ease-out;
+
+    grid-template-rows: 1fr;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-right: 2rem;
+}
+details + .detail {
+    grid-template-rows: 0fr;
+    padding-top: 0rem;
+    padding-bottom: 0rem;
+    padding-right: 0rem;
+}
+details[open] + .detail {
+    grid-template-rows: 1fr;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-right: 2rem;
+}
+details + .detail > * {
+    overflow: hidden;
+}
+
+/* Flex Structuring */
+
+.container {
+    gap: 2rem;
+    display: inline-flex;
+}
+.centering {
+    align-items: center;
+}
+.padded {
+    padding: 2rem;
+    border-radius: 2rem;
+}
+.very-padded {
+    padding: 4rem;
+    border-radius: 4rem;
+}
+.vertical {
+    flex-flow: column;
+}
+.horizontal {
+    flex-flow: row;
+}
+.wrapping {
+    flex-wrap: wrap;
+}
+.scrollable {
+    flex-wrap: nowrap;
+    scrollbar-gutter: stable;
+}
+.scrollable.vertical {
+    overflow-y: scroll;
+}
+.scrollable.horizontal {
+    overflow-x: scroll;
+}
+.packed {
+    gap: 0;
+    padding: 0;
+    justify-content: stretch;
+    align-content: stretch;
+    align-items: stretch;
+}
+.packed > * {
+    border-radius: 0;
+}
+.filling {
+    flex-grow: 1;
+}
+
+/* Grid Structuring */
+
+.stack {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+    grid-template-areas: "full";
+}
+.stack > * {
+    grid-area: full;
+}
+.panel {
+    justify-self: stretch;
+    align-self: stretch;
+}
+
+/* Distinctions */
+
+.warning {
+    color: $warning;
+}
+.tape {
+  background-image: url('/warning.svg');
+  background-repeat: repeat-x;
+  background-size: 2rem 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  width: 100%;
+}
+.bordered {
+    border: 2px solid;
+}
+.attention {
+    color: $pop-star;
+}
+.attention-border {
+    border-color: $pop-star;
+}
+.action {
+    color: $ether;
+    background-color: $pop-star;
+}
+.action.scrollable {
+    scrollbar-color: $ether transparent;
+}
+
+/* Blog Specific */
+
+@scope (.blog) {
+    h2 {
+        position: sticky;
+        top: 0rem;
+        z-index: 5;
+    }
+    h3 {
+        position: sticky;
+        top: 3.5rem;
+        z-index: 4;
+    }
+    h2::before, h3::before {
+        content: "";
+        position: absolute;
+        top: -1rem;
+        left: 0;
+        width: 100%;
+        height: 1rem;
+        pointer-events: none;
+    }
+    h1, h2, h3 {
+        border-bottom: 2px solid;
+    }
+}

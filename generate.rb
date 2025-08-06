@@ -1,9 +1,6 @@
 require 'pandoc-ruby'
 require 'now-do'
 
-Dir.mkdir('site') unless Dir.exist?('site')
-Dir.mkdir('site/blogs') unless Dir.exist?('site/blogs')
-
 def with_classes *classes
     if classes.nil?
         ""
@@ -20,6 +17,7 @@ def page title, *elements
     %Q{<!DOCTYPE html>
     <html lang="en">
         <head>
+            <link rel="icon" type="image/x-icon" href="/favicon.ico">
             <title>#{title}</title>
             <meta charset="utf-8">
             <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,16 +34,11 @@ def page title, *elements
     </html>}
 end
 
-# specifies default themeing in case js is not enabled
-def primary 
-    ["primary", "dark"]
-end
-
 def write_standard_page path, name, *elements
     File.open(path, 'w') do |file|
         content = div ["vertical", "packed", "scrollable", "padded", "container"], *elements, style: "width: 60%; margin: 0 auto;"
         side = div ["filling ramp"]
-        root = div [*primary, "packed", "horizontal", "padded", "container"], side, content, side, style: "height: 100vh;"
+        root = div ["primary", "packed", "horizontal", "padded", "container"], side, content, side, style: "height: 100vh; max-height: 100vh;"
         generated = page name, root
         file.puts generated
     end

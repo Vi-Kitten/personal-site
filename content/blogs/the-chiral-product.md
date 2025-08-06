@@ -5,7 +5,7 @@
 > that is to say that the behaviour of eliminating the past cannot depend on the elimination of the future.
 > This produces a finer gradation of product types that I will demonstrate invaluable in constructing a purely algebraic approach to mutation handling.
 
-*The reader should be familiar with programming using channels and references in strongly typed systems*
+*The reader should be familiar with programming using channels for concurrency or parallelism, and references in strongly typed systems*
 
 <div class="horizontal container" style="gap: 1rem;">
 
@@ -15,7 +15,7 @@
 <span class="attention material-symbols-outlined summary-icon">group_work</span>
 </summary></details>
 
-*will incidate a consise category theory dense explanation*
+*will incidate a consise category-theory dense explanation for those so inclined*
 
 </div>
 
@@ -127,12 +127,12 @@ extract_parallel :: a || () -> Future a
     group_work
   </span>
 
-**How does a Future behave?**
+**How may you use a `Future`?**
 
 </div></summary></details>
 <div class="ramp detail attention-border"><div class="vertical container">
 
-The covariant functor `Future` is a monad with where all its algebras are isomorphic to some linear consumer type.
+The covariant functor `Future` is a monad.
 
 </div></div><div class="detail"><div class="vertical container">
 
@@ -187,18 +187,103 @@ Current linear logic has no way to represent a *directed* flow of information an
 
 > It is this specific issue that I have now fixed.
 
-## The Chiral Product
+## Chiral Linear Logic <span class="warning"><span class="material-symbols-outlined">construction</span></span>
 
-To solve this issue we need to extend the type system with a new product type `>>`, called *then*.
+<div class="vertical container h2-content">
 
-We will use this product type to encode a *directed* flow of information be defining it via the following property.
-Where pairs in `a, b` are independent, and those in `a || b` are interdependent, pairs in `a >> b` are directionally dependent.
+### The Chiral Product
 
-Specifically `a >> b` provides two instances `x: a` and `y: b` such that the value of `y` depends on how you use `x`, but `x` itself does not depend on `y`, or in other words, information only flows from left to right. When talking about these values we say `x` is the **present** value and `y` is the **future** value.
+To fix this I will introduce a new chiral product type which will be written `a >> b`.
 
-...
+We will use this product type to describe *directed* flows of information. Where pairs of values in `a, b` must be independent, and those in `a || b` may be arbitrarily interdependent, pairs of values in `a >> b` can only be directionally dependent.
 
-> And with this we can tackle mutation in a more effective manner.
+Specifically, the value on right right, which we will call the value in the *future*, may be dependent on the value on the left,
+but the value on the left, which we will call the *present* may **not** depend on the value on the right.
 
-## An Algebraic Approach to Mutation
+*I call it the chiral product because unlike the disjunctive and conjunctive products, the chiral product is definitionally not commutative*
+
+Said with our new terms:
+
+- The *future* may depend on the *present*.
+- But the *present* may **not** depend on the *future*.
+
+### Purity <span class="warning"><span class="material-symbols-outlined">construction</span></span>
+
+Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
+
+Let us define a new type `pure a` consisting of all instances of `a` that have no values depending on how they are used, if all instances of a type satisfy this property we call the type itself **pure**. 
+
+In our example `Int` is a **pure** type.
+
+<div>
+<details><summary><div class="horizontal centering container" style="gap: 1rem;">
+  <span class="attention material-symbols-outlined summary-icon">
+    group_work
+  </span>
+
+**How can can you create `pure` values?**
+
+</div></summary></details>
+<div class="ramp detail attention-border"><div class="vertical container">
+
+More autistic yap yap yap.
+
+</div></div><div class="detail"><div class="vertical container">
+
+Yap yap yap.
+
+</div></div>
+</div>
+
+<div>
+<details><summary><div class="horizontal centering container" style="gap: 1rem;">
+  <span class="attention material-symbols-outlined summary-icon">
+    group_work
+  </span>
+
+**Why is purity preserved in the future?**
+
+</div></summary></details>
+<div class="ramp detail attention-border"><div class="vertical container">
+
+More autistic yap yap yap.
+
+</div></div><div class="detail"><div class="vertical container">
+
+Yap yap yap.
+
+</div></div>
+</div>
+
+### Borrowing <span class="warning"><span class="material-symbols-outlined">construction</span></span>
+
+```hs
+mutate :: pure (a -> b >> a) -> &mut a -> b
+```
+
+<div>
+<details><summary><div class="horizontal centering container" style="gap: 1rem;">
+  <span class="attention material-symbols-outlined summary-icon">
+    group_work
+  </span>
+
+**Why may a `&mut (pure a)` be safely treated as a `&mut a`?**
+
+</div></summary></details>
+<div class="ramp detail attention-border"><div class="vertical container">
+
+More autistic yap yap yap.
+
+</div></div><div class="detail"><div class="vertical container">
+
+Yap yap yap.
+
+</div></div>
+</div>
+
+</div>
+
+## An Algebraic Approach to Mutation <span class="warning"><span class="material-symbols-outlined">construction</span></span>
+
+We now have the tools to tackle our original problem (and a lot more).
 
