@@ -187,7 +187,7 @@ Current linear logic has no way to represent a *directed* flow of information an
 
 > It is this specific issue that I have now fixed.
 
-## Chiral Linear Logic <span class="warning"><span class="material-symbols-outlined">construction</span></span>
+## Chiral Linear Logic <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
 
 <div class="vertical container h2-content">
 
@@ -207,7 +207,7 @@ Said with our new terms:
 - The *future* may depend on the *present*.
 - But the *present* may **not** depend on the *future*.
 
-### Purity <span class="warning"><span class="material-symbols-outlined">construction</span></span>
+### Purity <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
 
 Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
 
@@ -243,6 +243,8 @@ Yap yap yap.
 
 **Why is purity preserved in the future?**
 
+...
+
 </div></summary></details>
 <div class="ramp detail attention-border"><div class="vertical container">
 
@@ -255,11 +257,15 @@ Yap yap yap.
 </div></div>
 </div>
 
-### Borrowing <span class="warning"><span class="material-symbols-outlined">construction</span></span>
+### Borrowing <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
+
+...
 
 ```hs
 mutate :: pure (a -> b >> a) -> &mut a -> b
 ```
+
+...
 
 <div>
 <details><summary><div class="horizontal centering container" style="gap: 1rem;">
@@ -283,7 +289,7 @@ Yap yap yap.
 
 </div>
 
-## An Algebraic Approach to Mutation <span class="warning"><span class="material-symbols-outlined">construction</span></span>
+## An Algebraic Approach to Mutation <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
 
 We now have the tools to tackle our original problem (and a lot more).
 

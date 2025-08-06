@@ -35,10 +35,10 @@ def page title, *elements
 end
 
 def write_standard_page path, name, *elements
-    File.open(path, 'w') do |file|
+    File.open("#{path}.html", 'w') do |file|
         content = div ["vertical", "packed", "scrollable", "padded", "container"], *elements, style: "width: 60%; margin: 0 auto;"
-        side = div ["filling ramp"]
-        root = div ["primary", "packed", "horizontal", "padded", "container"], side, content, side, style: "height: 100vh; max-height: 100vh;"
+        side = div ["filling", "ramp"]
+        root = div ["primary", "packed", "horizontal", "padded", "filling", "container"], side, content, side, style: "height: 100vh; max-height: 100vh;"
         generated = page name, root
         file.puts generated
     end
@@ -60,8 +60,16 @@ def under_construction
     div ["horizontal", "centering", "warning", "filling", "very-padded", "container"], crane, message, style: "justify-content: center;"
 end
 
+def write_placeholder_page path, name
+    File.open("#{path}.html", 'w') do |file|
+        root = div ["primary", "packed", "vertical", "centering", "filling", "container"], tape, under_construction, tape, style: "height: 100vh; max-height: 100vh;"
+        generated = page name, root
+        file.puts generated
+    end
+end
+
 def wip
-    %Q{<span class="warning"><span class="material-symbols-outlined">construction</span></span>}
+    %Q{<span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>}
 end
 
 def render_markdown path
@@ -86,7 +94,7 @@ class PageData
 
     def tags
         html = []
-        if not is :complete then html.push wip end
+        html.push wip unless is :complete
         html
     end
 end
@@ -106,7 +114,7 @@ blog_links = now do |;intro|
         else
             div ["vertical", "packed", "container"], prose, tape, under_construction
         end
-        write_standard_page "site/blogs/#{blog_name}.html", page_data.name, content
+        write_standard_page "site/blogs/#{blog_name}", page_data.name, content
         title = div ["centering", "horizontal", "container"], %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}
         div ["ramp", "detail"], title, page_data.excerpt, style: "flex-grow: 1;"
     end
@@ -114,4 +122,6 @@ blog_links = now do |;intro|
     div ["vertical", "padded", "container"], intro, card_container
 end
 
-write_standard_page "site/index.html", "Kitsune Vi Portfolio Site", intro, blog_links, tape, under_construction
+write_placeholder_page "site/blogs/index", "Blogs"
+
+write_standard_page "site/index", "Kitsune Vi Portfolio Site", intro, blog_links, tape, under_construction

@@ -5,7 +5,6 @@
     border: 0;
     list-style-position: inside;
 }
-
 img, picture, video, canvas, svg {
     display: block;
     max-width: 100%;
@@ -290,6 +289,9 @@ details + .detail > * {
 }
 .filling {
     flex-grow: 1;
+}
+.container.filling {
+    display: flex;
 }
 
 /* Grid Structuring */

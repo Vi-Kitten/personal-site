@@ -12,4 +12,6 @@ On the scale of an individual or even a company this is not effective, but on th
 
 </div></div>
 
+...So anyways I got into language development. `:3`
+
 I hope you find what you are looking for on my site!

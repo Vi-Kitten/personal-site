@@ -363,6 +363,10 @@ details + .detail > * {
   flex-grow: 1;
 }
 
+.container.filling {
+  display: flex;
+}
+
 /* Grid Structuring */
 .stack {
   display: grid;
