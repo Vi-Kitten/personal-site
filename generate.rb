@@ -58,7 +58,7 @@ end
 
 def under_construction
     crane = %Q{<img src="/crane.svg" style="height: 6rem; width: 6rem;">}
-    message = %Q{<p style="font-size: 3rem;">UNDER CONSTRUTION</p>}
+    message = %Q{<p style="font-size: 3rem;">UNDER CONSTRUCTION</p>}
     div ["horizontal", "centering", "warning", "filling", "very-padded", "container"], crane, message, style: "justify-content: center;"
 end
 
