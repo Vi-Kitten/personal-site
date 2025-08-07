@@ -1,18 +1,50 @@
 require 'pandoc-ruby'
 require 'now-do'
 
-Dir.mkdir("site/blogs") unless Dir.exist?("site/blogs")
-
-def with_classes *classes
-    if classes.nil?
-        ""
-    else
-        "class=\"#{classes.join " "}\""
+def run_key hash, key
+    if hash.has_key?(key)
+        yield hash[key]
     end
 end
 
-def with_style style
-    "style=\"#{style}\""
+Dir.mkdir("site/blogs") unless Dir.exist?("site/blogs")
+
+def render_tag elem, elements, kwargs, **mixin
+    kwargs[:style] = "" unless kwargs.has_key? :style
+    run_key mixin, :style do |style|
+        kwargs[:style] += style
+    end
+
+    kwargs[:class] = [] unless kwargs.has_key? :class
+    run_key mixin, :class do |html_class|
+        kwargs[:class] += html_class
+    end
+
+%Q{<#{elem} style="#{kwargs[:style]}" class="#{kwargs[:class].join " "}">
+
+#{elements.join "\n"}
+
+</#{elem}>}
+end
+
+def div *elements, **kwargs
+    render_tag "div", elements, kwargs 
+end
+
+def padded_vertical *elements, **kwargs
+    render_tag "div", elements, kwargs, :class ["vertical", "padded", "container"]
+end
+
+def packed_vertical *elements, **kwargs
+    render_tag "div", elements, kwargs, :class ["vertical", "packed", "container"]
+end
+
+def padded_horizontal *elements, **kwargs
+    render_tag "div", elements, kwargs, :class ["horizontal", "padded", "container"]
+end
+
+def packed_horizontal *elements, **kwargs
+    render_tag "div", elements, kwargs, :class ["horizontal", "packed", "container"]
 end
 
 def page title, *elements
@@ -44,34 +76,28 @@ def scope_warning
         Your browser does not support <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@scope">css scopes</a>!
         As a result some things on this page may not render properly!
     </p>}
-    box = div ["horizontal", "spaced", "mildly-padded", "bordered", "filling", "container"], no_scope_support, close_button
-    div ["scope-warning", "padded", "warning", "popup"], box
+    box = div no_scope_support, close_button, class: ["horizontal", "spaced", "mildly-padded", "bordered", "filling", "container"]
+    div box, class: ["scope-warning", "padded", "warning", "popup"]
 end
 
 def write_standard_page path, name, *elements
     File.open("#{path}.html", 'w') do |file|
-        content = div ["vertical", "packed", "scrollable", "padded", "container"], scope_warning, *elements, style: "width: 60%; margin: 0 auto;"
-        side = div ["filling", "ramp"]
-        root = div ["primary", "packed", "horizontal", "padded", "filling", "container"], side, content, side, style: "height: 100vh; max-height: 100vh;"
+        content = div scope_warning, *elements, style: "width: 60%; margin: 0 auto;", class: ["vertical", "packed", "scrollable", "padded", "container"]
+        side = div class: ["filling", "ramp"]
+        root = div side, content, side, style: "height: 100vh; max-height: 100vh;", class: ["primary", "packed", "horizontal", "padded", "filling", "container"]
         generated = page name, root
         file.puts generated
     end
 end
 
-def div classes, *elements, style: ""
-    %Q{<div #{with_classes *classes} #{with_style style}>
-        #{elements.join}
-    </div>}
-end
-
 def tape
-    div ["tape"]
+    div class: ["tape"]
 end
 
 def under_construction
     crane = %Q{<img src="/crane.svg" style="height: 6rem; width: 6rem;">}
     message = %Q{<p style="font-size: 3rem;">UNDER CONSTRUCTION</p>}
-    div ["horizontal", "centering", "warning", "filling", "very-padded", "container"], crane, message, style: "justify-content: center;"
+    div crane, message, style: "justify-content: center;", class: ["horizontal", "centering", "warning", "filling", "very-padded", "container"]
 end
 
 # def no_content
@@ -82,7 +108,7 @@ end
 
 def write_placeholder_page path, name
     File.open("#{path}.html", 'w') do |file|
-        root = div ["primary", "packed", "vertical", "centering", "filling", "container"], tape, under_construction, tape, style: "height: 100vh; max-height: 100vh;"
+        root = div tape, under_construction, tape, style: "height: 100vh; max-height: 100vh;", class: ["primary", "packed", "vertical", "centering", "filling", "container"]
         generated = page name, root
         file.puts generated
     end
@@ -185,7 +211,7 @@ class PageData
     end
 end
 
-intro = div ["vertical", "padded", "container"], (render_markdown "content/intro.md")
+intro = div (render_markdown "content/intro.md"), class: ["vertical", "padded", "container"]
 
 blogs = {
     "the-chiral-product" => PageData.new(
@@ -198,18 +224,18 @@ blogs = {
 blog_links = now do |;intro|
     intro = render_markdown "content/blogs-intro.md"
     cards = blogs.map do |blog_name, page_data|
-        prose = div ["vertical", "padded", "container", "blog"], (render_markdown "content/blogs/#{blog_name}.md")
+        prose = div (render_markdown "content/blogs/#{blog_name}.md"), class: ["vertical", "padded", "container", "blog"]
         content = if page_data.is :complete then
-            div ["vertical", "packed", "container"], prose
+            div prose, class: ["vertical", "packed", "container"]
         else
-            div ["vertical", "packed", "container"], prose, tape, under_construction
+            div prose, tape, under_construction, class: ["vertical", "packed", "container"]
         end
         write_standard_page "site/blogs/#{blog_name}", page_data.name, content
-        title = div ["centering", "horizontal", "container"], %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}
-        div ["ramp", "detail"], title, page_data.excerpt, style: "flex-grow: 1;"
+        title = div %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}, class: ["centering", "horizontal", "container"]
+        div title, page_data.excerpt, style: "flex-grow: 1;", class: ["ramp", "detail"]
     end
-    card_container = div ["horizontal", "full", "wrapping", "padded", "container"], *cards
-    div ["vertical", "padded", "container"], intro, card_container
+    card_container = div *cards, class: ["horizontal", "full", "wrapping", "padded", "container"]
+    div intro, card_container, class: ["vertical", "padded", "container"]
 end
 
 write_placeholder_page "site/blogs/index", "Blogs"
