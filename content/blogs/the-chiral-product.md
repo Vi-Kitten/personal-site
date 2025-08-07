@@ -163,9 +163,9 @@ Our values are now in parallel and must be handled separately; there is no way t
 
 Current linear logic has no way to represent a *directed* flow of information and hence time.
 
-> It is this specific issue that I have now fixed.
+> It is this issue that I have now fixed.
 
-## Chiral Linear Logic ::[wip]::
+## Chiral Linear Logic (CLL) ::[wip]::
 
 ::[h2_content[::
 

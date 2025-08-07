@@ -47,6 +47,14 @@ def packed_horizontal *elements, **kwargs
     render_tag "div", elements, kwargs, class: ["horizontal", "packed", "container"]
 end
 
+def main *elements, **kwargs
+    render_tag "main", elements, kwargs
+end
+
+def article *elements, **kwargs
+    render_tag "article", elements, kwargs
+end
+
 def page title, *elements
     %Q{<!DOCTYPE html>
     <html lang="en">
@@ -82,9 +90,10 @@ end
 
 def write_standard_page path, name, *elements
     File.open("#{path}.html", 'w') do |file|
-        content = div scope_warning, *elements, style: "width: 60%; margin: 0 auto;", class: ["vertical", "packed", "scrollable", "padded", "container"]
+        content = packed_vertical scope_warning, *elements
+        main_content = main content, style: "width: 60%; overflow-y: scroll;", class: ["forward-theme"]
         side = div class: ["filling", "ramp"]
-        root = div side, content, side, style: "height: 100vh; max-height: 100vh;", class: ["primary", "packed", "horizontal", "padded", "filling", "container"]
+        root = packed_horizontal side, main_content, side, style: "height: 100vh; max-height: 100vh;", class: ["primary", "filling"]
         generated = page name, root
         file.puts generated
     end
@@ -157,11 +166,11 @@ def summary_icon
 end
 
 def detail classes, content
-%Q{<div class="detail #{classes.join " "}"><div class="vertical container">
+%Q{<blockquote class="detail #{classes.join " "}"><div class="vertical container">
 
 #{content}
 
-</div></div>}
+</div></blockquote>}
 end
 
 def details title, technical, layman=""
@@ -230,7 +239,8 @@ blog_links = now do |;intro|
         else
             packed_vertical prose, tape, under_construction
         end
-        write_standard_page "site/blogs/#{blog_name}", page_data.name, content
+        article_content = article content, class: ["blog", "forward-theme"]
+        write_standard_page "site/blogs/#{blog_name}", page_data.name, article_content
         title = div %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}, class: ["centering", "horizontal", "container"]
         div title, page_data.excerpt, style: "flex-grow: 1;", class: ["ramp", "detail"]
     end

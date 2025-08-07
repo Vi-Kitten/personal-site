@@ -21,13 +21,13 @@ body {
   overflow: hidden;
 }
 
-.primary {
+.primary, .primary .ramp, .primary .forward-theme {
   background-color: light-dark(#f4f1ee, #100819);
   color: light-dark(#100819, #f4f1ee);
 }
 
 @scope (.primary) {
-  :scope {
+  :scope, .ramp, .forward-theme {
     background-color: light-dark(#f4f1ee, #100819);
     color: light-dark(#100819, #f4f1ee);
   }
@@ -39,14 +39,14 @@ body {
     background: linear-gradient(to bottom, transparent 0%, light-dark(#f4f1ee, #100819) 100%);
   }
   @scope (.ramp) {
-    :scope {
+    :scope, .forward-theme {
       background-color: light-dark(#e9dfd4, #1b1626);
     }
     .blog h2::before, .blog h3::before {
       background: linear-gradient(to bottom, transparent 0%, light-dark(#e9dfd4, #1b1626) 100%);
     }
     @scope (.ramp) {
-      :scope {
+      :scope, .forward-theme {
         background-color: light-dark(#e3cfba, #241e31);
       }
       .blog h2::before, .blog h3::before {
@@ -55,13 +55,13 @@ body {
     }
   }
 }
-.secondary {
+.secondary, .secondary .ramp, .secondary .forward-theme {
   background-color: light-dark(#100819, #f4f1ee);
   color: light-dark(#f4f1ee, #100819);
 }
 
 @scope (.secondary) {
-  :scope {
+  :scope, .ramp, .forward-theme {
     background-color: light-dark(#100819, #f4f1ee);
     color: light-dark(#f4f1ee, #100819);
   }
@@ -73,14 +73,14 @@ body {
     background: linear-gradient(to bottom, transparent 0%, light-dark(#100819, #f4f1ee) 100%);
   }
   @scope (.ramp) {
-    :scope {
+    :scope, .forward-theme {
       background-color: light-dark(#1b1626, #e9dfd4);
     }
     .blog h2::before, .blog h3::before {
       background: linear-gradient(to bottom, transparent 0%, light-dark(#1b1626, #e9dfd4) 100%);
     }
     @scope (.ramp) {
-      :scope {
+      :scope, .forward-theme {
         background-color: light-dark(#241e31, #e3cfba);
       }
       .blog h2::before, .blog h3::before {
@@ -169,11 +169,6 @@ code {
   font-weight: 500;
 }
 
-blockquote {
-  padding-left: 1rem;
-  border-left: 2px solid;
-}
-
 div.sourceCode {
   color: inherit;
   width: fit-content;
@@ -212,7 +207,7 @@ details > summary {
   height: max-content;
 }
 
-.detail {
+blockquote {
   border-left: 2px solid;
   margin-left: 11px;
   padding-left: max(11px, 2rem - 13px);
@@ -228,21 +223,21 @@ details > summary {
   padding-right: 2rem;
 }
 
-details + .detail {
+details ~ blockquote.detail {
   grid-template-rows: 0fr;
   padding-top: 0rem;
   padding-bottom: 0rem;
   padding-right: 0rem;
 }
 
-details[open] + .detail {
+details[open] ~ blockquote.detail {
   grid-template-rows: 1fr;
   padding-top: 2rem;
   padding-bottom: 2rem;
   padding-right: 2rem;
 }
 
-details + .detail > * {
+details ~ blockquote.detail > * {
   overflow: hidden;
 }
 

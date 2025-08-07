@@ -58,13 +58,13 @@ $secondary-2: light-dark($slate, $beige);
 }
 
 // backup for non-scope browsers
-.primary {
+.primary, .primary .ramp, .primary .forward-theme {
     background-color: $primary-0;
     color: $secondary-0;
 }
 
 @scope (.primary) {
-    :scope {
+    :scope, .ramp, .forward-theme {
         background-color: $primary-0;
         color: $secondary-0;
     }
@@ -77,14 +77,14 @@ $secondary-2: light-dark($slate, $beige);
     @include blog-heading-fade($primary-0);
 
     @scope (.ramp) {
-        :scope {
+        :scope, .forward-theme {
             background-color: $primary-1;
         }
 
         @include blog-heading-fade($primary-1);
 
         @scope (.ramp) {
-            :scope {
+            :scope, .forward-theme {
                 background-color: $primary-2;
             }            
 
@@ -94,13 +94,13 @@ $secondary-2: light-dark($slate, $beige);
 }
 
 // backup for non-scope browsers
-.secondary {
+.secondary, .secondary .ramp, .secondary .forward-theme {
     background-color: $secondary-0;
     color: $primary-0;
 }
 
 @scope (.secondary) {
-    :scope {
+    :scope, .ramp, .forward-theme {
         background-color: $secondary-0;
         color: $primary-0;
     }
@@ -113,14 +113,14 @@ $secondary-2: light-dark($slate, $beige);
     @include blog-heading-fade($secondary-0);
 
     @scope (.ramp) {
-        :scope {
+        :scope, .forward-theme {
             background-color: $secondary-1;
         }
 
         @include blog-heading-fade($secondary-1);
 
         @scope (.ramp) {
-            :scope {
+            :scope, .forward-theme {
                 background-color: $secondary-2;
             }
 
@@ -199,10 +199,6 @@ code {
     font-variant-ligatures: normal;
     font-weight: 500;
 }
-blockquote {
-    padding-left: 1rem;
-    border-left: 2px solid;
-}
 
 div.sourceCode {
     color: inherit;
@@ -241,7 +237,7 @@ details > summary {
     width: max-content;
     height: max-content;
 }
-.detail {
+blockquote {
     border-left: 2px solid;
     margin-left: 11px;
     padding-left: max(11px, calc(2rem - 13px));
@@ -258,19 +254,19 @@ details > summary {
     padding-bottom: 2rem;
     padding-right: 2rem;
 }
-details + .detail {
+details ~ blockquote.detail {
     grid-template-rows: 0fr;
     padding-top: 0rem;
     padding-bottom: 0rem;
     padding-right: 0rem;
 }
-details[open] + .detail {
+details[open] ~ blockquote.detail {
     grid-template-rows: 1fr;
     padding-top: 2rem;
     padding-bottom: 2rem;
     padding-right: 2rem;
 }
-details + .detail > * {
+details ~ blockquote.detail > * {
     overflow: hidden;
 }
 
