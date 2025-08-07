@@ -12,7 +12,7 @@ Dir.mkdir("site/blogs") unless Dir.exist?("site/blogs")
 def render_tag elem, elements, kwargs, **mixin
     kwargs[:style] = "" unless kwargs.has_key? :style
     run_key mixin, :style do |style|
-        kwargs[:style] += style
+        kwargs[:style] += (";" + style)
     end
 
     kwargs[:class] = [] unless kwargs.has_key? :class
@@ -22,7 +22,7 @@ def render_tag elem, elements, kwargs, **mixin
 
 %Q{<#{elem} style="#{kwargs[:style]}" class="#{kwargs[:class].join " "}">
 
-#{elements.join "\n"}
+#{elements.join "\n\n"}
 
 </#{elem}>}
 end
@@ -32,19 +32,19 @@ def div *elements, **kwargs
 end
 
 def padded_vertical *elements, **kwargs
-    render_tag "div", elements, kwargs, :class ["vertical", "padded", "container"]
+    render_tag "div", elements, kwargs, class: ["vertical", "padded", "container"]
 end
 
 def packed_vertical *elements, **kwargs
-    render_tag "div", elements, kwargs, :class ["vertical", "packed", "container"]
+    render_tag "div", elements, kwargs, class: ["vertical", "packed", "container"]
 end
 
 def padded_horizontal *elements, **kwargs
-    render_tag "div", elements, kwargs, :class ["horizontal", "padded", "container"]
+    render_tag "div", elements, kwargs, class: ["horizontal", "padded", "container"]
 end
 
 def packed_horizontal *elements, **kwargs
-    render_tag "div", elements, kwargs, :class ["horizontal", "packed", "container"]
+    render_tag "div", elements, kwargs, class: ["horizontal", "packed", "container"]
 end
 
 def page title, *elements
@@ -211,7 +211,7 @@ class PageData
     end
 end
 
-intro = div (render_markdown "content/intro.md"), class: ["vertical", "padded", "container"]
+intro = padded_vertical (render_markdown "content/intro.md")
 
 blogs = {
     "the-chiral-product" => PageData.new(
@@ -224,18 +224,18 @@ blogs = {
 blog_links = now do |;intro|
     intro = render_markdown "content/blogs-intro.md"
     cards = blogs.map do |blog_name, page_data|
-        prose = div (render_markdown "content/blogs/#{blog_name}.md"), class: ["vertical", "padded", "container", "blog"]
+        prose = padded_vertical (render_markdown "content/blogs/#{blog_name}.md"), class: ["blog"]
         content = if page_data.is :complete then
-            div prose, class: ["vertical", "packed", "container"]
+            packed_vertical prose
         else
-            div prose, tape, under_construction, class: ["vertical", "packed", "container"]
+            packed_vertical prose, tape, under_construction
         end
         write_standard_page "site/blogs/#{blog_name}", page_data.name, content
         title = div %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}, class: ["centering", "horizontal", "container"]
         div title, page_data.excerpt, style: "flex-grow: 1;", class: ["ramp", "detail"]
     end
-    card_container = div *cards, class: ["horizontal", "full", "wrapping", "padded", "container"]
-    div intro, card_container, class: ["vertical", "padded", "container"]
+    card_container = padded_horizontal *cards, class: ["full", "wrapping"]
+    padded_vertical intro, card_container
 end
 
 write_placeholder_page "site/blogs/index", "Blogs"
