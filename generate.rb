@@ -28,7 +28,6 @@ def page title, *elements
             <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24..48,400,0..1,0" rel="stylesheet" />
             <link rel="stylesheet" href="/style.css">
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-            <script src="/main.js"></script>
         </head>
         <body>
             #{elements.join}
@@ -36,9 +35,22 @@ def page title, *elements
     </html>}
 end
 
+def close_button
+    %Q{<label><input type="checkbox" class="close"><span class="material-symbols-outlined">close</span></label>}
+end
+
+def scope_warning
+    no_scope_support = %Q{<p>
+        Your browser does not support <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@scope">css scopes</a>!
+        As a result some things on this page may not render properly!
+    </p>}
+    box = div ["horizontal", "spaced", "mildly-padded", "bordered", "filling", "container"], no_scope_support, close_button
+    div ["scope-warning", "padded", "warning", "popup"], box
+end
+
 def write_standard_page path, name, *elements
     File.open("#{path}.html", 'w') do |file|
-        content = div ["vertical", "packed", "scrollable", "padded", "container"], *elements, style: "width: 60%; margin: 0 auto;"
+        content = div ["vertical", "packed", "scrollable", "padded", "container"], scope_warning, *elements, style: "width: 60%; margin: 0 auto;"
         side = div ["filling", "ramp"]
         root = div ["primary", "packed", "horizontal", "padded", "filling", "container"], side, content, side, style: "height: 100vh; max-height: 100vh;"
         generated = page name, root
@@ -62,6 +74,12 @@ def under_construction
     div ["horizontal", "centering", "warning", "filling", "very-padded", "container"], crane, message, style: "justify-content: center;"
 end
 
+# def no_content
+#     ruins = %Q{<img src="/ruins.svg" style="height: 6rem; width: 6rem;">}
+#     message = %Q{<p style="font-size: 3rem;">Nothing Here</p>}
+#     div ["default", "horizontal", "centering", "faded", "filling", "padded", "container"], ruins, message, style: "justify-content: center;"
+# end
+
 def write_placeholder_page path, name
     File.open("#{path}.html", 'w') do |file|
         root = div ["primary", "packed", "vertical", "centering", "filling", "container"], tape, under_construction, tape, style: "height: 100vh; max-height: 100vh;"
@@ -74,28 +92,94 @@ def wip
     %Q{<span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>}
 end
 
+def theory
+    %Q{<span class="material-symbols-outlined" title="Theory">architecture</span>}
+end
+
+def interpolate text
+    escaped = text
+        .gsub("{", "{".dump)
+        .gsub("}", "}".dump)
+    code = "%Q{#{escaped}}"
+        .gsub("::[", "#" + "{")
+        .gsub("]::", "}")
+        .gsub("[::", " (yield %Q{")
+        .gsub("::]", "}) ")
+    begin
+        yield eval(code)
+    rescue
+        STDERR.puts "---- | ---- evaluated code ----"
+        code.lines.each_with_index do |line, index|
+            STDERR.puts "#{"%04d" % (index + 1)} | #{line}"
+        end
+        STDERR.puts "---- | ------------------------"
+        raise
+    end
+end
+
 def render_markdown path
     File.open(path, 'r') do |file|
-        PandocRuby.convert(file.read, from: :markdown, to: :html)
+        result = interpolate file.read do |text|
+            text
+        end
+        PandocRuby.convert(result, from: :markdown, to: :html)
     end
+end
+
+def summary_icon
+    %Q{<span class="attention material-symbols-outlined summary-icon">group_work</span>}
+end
+
+def detail classes, content
+%Q{<div class="detail #{classes.join " "}"><div class="vertical container">
+
+#{content}
+
+</div></div>}
+end
+
+def details title, technical, layman=""
+%Q{<div>
+
+<details><summary><div class="horizontal centering container" style="gap: 1rem;">
+
+#{summary_icon}
+
+#{title}
+
+</div></summary></details>
+
+#{detail ["ramp", "attention-border"], technical}
+
+#{detail [], layman}
+
+</div>}
+end
+
+def h2_content content
+%Q{<div class="vertical container h2-content">
+#{content}
+</div>
+}
 end
 
 class PageData
     attr_reader :name
     attr_reader :excerpt
 
-    def initialize name, excerpt, tags={}
+    def initialize name, excerpt, *tags
         @name = name
         @tags = tags
         @excerpt = excerpt
     end
 
-    def is id, default: false
-        @tags.fetch(id, default)
+    def is id
+        @tags.include? id
     end
 
     def tags
         html = []
+        if is :theory then html.push theory end
         html.push wip unless is :complete
         html
     end
@@ -104,7 +188,11 @@ end
 intro = div ["vertical", "padded", "container"], (render_markdown "content/intro.md")
 
 blogs = {
-    "the-chiral-product" => PageData.new("The Chiral Product", "<p>An algebraic approach to mutation in linearly typed systems.</p>")
+    "the-chiral-product" => PageData.new(
+        "The Chiral Product",
+        "<p>An algebraic approach to mutation in linearly typed systems.</p>",
+        :theory
+    )
 }
 
 blog_links = now do |;intro|

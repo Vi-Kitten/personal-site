@@ -1,3 +1,7 @@
+:root {
+  color-scheme: light dark;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -17,158 +21,100 @@ body {
   overflow: hidden;
 }
 
-/* Theme */
-@media (prefers-color-scheme: light) {
-  @scope (.primary) {
-    :scope {
-      background-color: #f4f1ee;
-      color: #100819;
-    }
-    ::selection {
-      background-color: #ef99a0;
-      color: #f4f1ee;
-    }
-    .ramp {
-      background-color: #e9dfd4;
-    }
-    .ramp .ramp {
-      background-color: #e3cfba;
-    }
-    :scope.scrollable, .scrollable {
-      scrollbar-color: #100819 transparent;
-    }
-    @scope (.blog) {
-      h2::before, h3::before {
-        background: linear-gradient(to bottom, transparent 0%, #f4f1ee 100%);
-      }
-    }
+.primary {
+  background-color: light-dark(#f4f1ee, #100819);
+  color: light-dark(#100819, #f4f1ee);
+}
+
+@scope (.primary) {
+  :scope {
+    background-color: light-dark(#f4f1ee, #100819);
+    color: light-dark(#100819, #f4f1ee);
   }
-  @scope (.secondary) {
+  ::selection {
+    background-color: light-dark(#ef99a0, #41ac99);
+    color: light-dark(#f4f1ee, #100819);
+  }
+  .blog h2::before, .blog h3::before {
+    background: linear-gradient(to bottom, transparent 0%, light-dark(#f4f1ee, #100819) 100%);
+  }
+  @scope (.ramp) {
     :scope {
-      background-color: #100819;
-      color: #f4f1ee;
+      background-color: light-dark(#e9dfd4, #1b1626);
     }
-    ::selection {
-      background-color: #41ac99;
-      color: #100819;
+    .blog h2::before, .blog h3::before {
+      background: linear-gradient(to bottom, transparent 0%, light-dark(#e9dfd4, #1b1626) 100%);
     }
-    .ramp {
-      background-color: #1b1626;
-    }
-    .ramp .ramp {
-      background-color: #241e31;
-    }
-    :scope.scrollable, .scrollable {
-      scrollbar-color: #f4f1ee transparent;
-    }
-    @scope (.blog) {
-      h2::before, h3::before {
-        background: linear-gradient(to bottom, transparent 0%, #100819 100%);
+    @scope (.ramp) {
+      :scope {
+        background-color: light-dark(#e3cfba, #241e31);
+      }
+      .blog h2::before, .blog h3::before {
+        background: linear-gradient(to bottom, transparent 0%, light-dark(#e3cfba, #241e31) 100%);
       }
     }
   }
 }
-@media (prefers-color-scheme: dark) {
-  @scope (.primary) {
-    :scope {
-      background-color: #100819;
-      color: #f4f1ee;
-    }
-    ::selection {
-      background-color: #41ac99;
-      color: #100819;
-    }
-    .ramp {
-      background-color: #1b1626;
-    }
-    .ramp .ramp {
-      background-color: #241e31;
-    }
-    :scope.scrollable, .scrollable {
-      scrollbar-color: #f4f1ee transparent;
-    }
-    @scope (.blog) {
-      h2::before, h3::before {
-        background: linear-gradient(to bottom, transparent 0%, #100819 100%);
-      }
-    }
+.secondary {
+  background-color: light-dark(#100819, #f4f1ee);
+  color: light-dark(#f4f1ee, #100819);
+}
+
+@scope (.secondary) {
+  :scope {
+    background-color: light-dark(#100819, #f4f1ee);
+    color: light-dark(#f4f1ee, #100819);
   }
-  @scope (.secondary) {
+  ::selection {
+    background-color: light-dark(#41ac99, #ef99a0);
+    color: light-dark(#100819, #f4f1ee);
+  }
+  .blog h2::before, .blog h3::before {
+    background: linear-gradient(to bottom, transparent 0%, light-dark(#100819, #f4f1ee) 100%);
+  }
+  @scope (.ramp) {
     :scope {
-      background-color: #f4f1ee;
-      color: #100819;
+      background-color: light-dark(#1b1626, #e9dfd4);
     }
-    ::selection {
-      background-color: #ef99a0;
-      color: #f4f1ee;
+    .blog h2::before, .blog h3::before {
+      background: linear-gradient(to bottom, transparent 0%, light-dark(#1b1626, #e9dfd4) 100%);
     }
-    .ramp {
-      background-color: #e9dfd4;
-    }
-    .ramp .ramp {
-      background-color: #e3cfba;
-    }
-    :scope.scrollable, .scrollable {
-      scrollbar-color: #100819 transparent;
-    }
-    @scope (.blog) {
-      h2::before, h3::before {
-        background: linear-gradient(to bottom, transparent 0%, #f4f1ee 100%);
+    @scope (.ramp) {
+      :scope {
+        background-color: light-dark(#241e31, #e3cfba);
+      }
+      .blog h2::before, .blog h3::before {
+        background: linear-gradient(to bottom, transparent 0%, light-dark(#241e31, #e3cfba) 100%);
       }
     }
   }
 }
-@media (prefers-color-scheme: no-preference) {
-  @scope (.primary) {
-    :scope {
-      background-color: #100819;
-      color: #f4f1ee;
-    }
-    ::selection {
-      background-color: #41ac99;
-      color: #100819;
-    }
-    .ramp {
-      background-color: #1b1626;
-    }
-    .ramp .ramp {
-      background-color: #241e31;
-    }
-    :scope.scrollable, .scrollable {
-      scrollbar-color: #f4f1ee transparent;
-    }
-    @scope (.blog) {
-      h2::before, h3::before {
-        background: linear-gradient(to bottom, transparent 0%, #100819 100%);
-      }
-    }
-  }
-  @scope (.secondary) {
-    :scope {
-      background-color: #f4f1ee;
-      color: #100819;
-    }
-    ::selection {
-      background-color: #ef99a0;
-      color: #f4f1ee;
-    }
-    .ramp {
-      background-color: #e9dfd4;
-    }
-    .ramp .ramp {
-      background-color: #e3cfba;
-    }
-    :scope.scrollable, .scrollable {
-      scrollbar-color: #100819 transparent;
-    }
-    @scope (.blog) {
-      h2::before, h3::before {
-        background: linear-gradient(to bottom, transparent 0%, #f4f1ee 100%);
-      }
-    }
-  }
+.blog h2 {
+  position: sticky;
+  top: 0rem;
+  z-index: 5;
 }
-/* Text */
+
+.blog h3 {
+  position: sticky;
+  top: 3.5rem;
+  z-index: 4;
+}
+
+.blog h2::before, .blog h3::before {
+  content: "";
+  position: absolute;
+  top: -1rem;
+  left: 0;
+  width: 100%;
+  height: 1rem;
+  pointer-events: none;
+}
+
+.blog h1, .blog h2, .blog h3 {
+  border-bottom: 2px solid;
+}
+
 div, h1, h2, h3, p, ul, li {
   background-color: inherit;
   color: inherit;
@@ -228,30 +174,28 @@ blockquote {
   border-left: 2px solid;
 }
 
-@scope (div.sourceCode) {
-  :scope {
-    color: inherit;
-    width: fit-content;
-    border: 2px solid;
-    padding: 1rem;
-    border-radius: 1rem;
-  }
-  /* keyword */
-  span.kw {
-    color: #d09124;
-    font-weight: bold;
-  }
-  /* operator */
-  span.op {
-    color: #e83d7f;
-    font-weight: semi-bold;
-  }
-  /* comment */
-  span.co {
-    color: #4c6a76;
-  }
+div.sourceCode {
+  color: inherit;
+  width: fit-content;
+  border: 2px solid;
+  padding: 1rem;
+  border-radius: 1rem;
 }
-/* Details Setup */
+
+div.sourceCode span.kw {
+  color: #d09124;
+  font-weight: bold;
+}
+
+div.sourceCode span.op {
+  color: #e83d7f;
+  font-weight: semi-bold;
+}
+
+div.sourceCode span.co {
+  color: #4c6a76;
+}
+
 .summary-icon {
   transition: font-variation-settings 200ms ease-out;
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
@@ -302,7 +246,6 @@ details + .detail > * {
   overflow: hidden;
 }
 
-/* Flex Structuring */
 .container {
   gap: 2rem;
   display: inline-flex;
@@ -310,6 +253,15 @@ details + .detail > * {
 
 .centering {
   align-items: center;
+}
+
+.spaced {
+  justify-content: space-between;
+}
+
+.mildly-padded {
+  padding: 1rem;
+  border-radius: 1rem;
 }
 
 .padded {
@@ -367,7 +319,6 @@ details + .detail > * {
   display: flex;
 }
 
-/* Grid Structuring */
 .stack {
   display: grid;
   grid-template-columns: auto;
@@ -384,9 +335,12 @@ details + .detail > * {
   align-self: stretch;
 }
 
-/* Distinctions */
 .warning {
   color: #f86d16;
+}
+
+.faded {
+  color: #4c6a76;
 }
 
 .tape {
@@ -419,30 +373,25 @@ details + .detail > * {
   scrollbar-color: #f4f1ee transparent;
 }
 
-/* Blog Specific */
-@scope (.blog) {
-  h2 {
-    position: sticky;
-    top: 0rem;
-    z-index: 5;
+.popup:has(input[type=checkbox].close:checked) {
+  display: none;
+}
+
+input[type=checkbox].close {
+  display: none;
+}
+
+label:has(input[type=checkbox].close) {
+  cursor: pointer;
+}
+
+@scope (body) {
+  .scope-warning {
+    display: none;
   }
-  h3 {
-    position: sticky;
-    top: 3.5rem;
-    z-index: 4;
-  }
-  h2::before, h3::before {
-    content: "";
-    position: absolute;
-    top: -1rem;
-    left: 0;
-    width: 100%;
-    height: 1rem;
-    pointer-events: none;
-  }
-  h1, h2, h3 {
-    border-bottom: 2px solid;
-  }
+}
+* + .default {
+  display: none !important;
 }
 
 /*# sourceMappingURL=style.css.map */

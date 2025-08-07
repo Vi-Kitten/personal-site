@@ -1,3 +1,6 @@
+:root {
+  color-scheme: light dark;
+}
 * {
     box-sizing: border-box;
     padding: 0;
@@ -38,86 +41,120 @@ $pop-star: #e83d7f;
 
 $warning: #f86d16;
 
-/* Theme */
+// Theme
 
-@mixin dark {
+$primary-0: light-dark($ether, $oblivion);
+$primary-1: light-dark($eggshell, $foundation);
+$primary-2: light-dark($beige, $slate);
+
+$secondary-0: light-dark($oblivion, $ether);
+$secondary-1: light-dark($foundation, $eggshell);
+$secondary-2: light-dark($slate, $beige);
+
+@mixin blog-heading-fade($bg) {
+    .blog h2::before, .blog h3::before {
+        background: linear-gradient(to bottom, transparent 0%, $bg 100%);
+    }
+}
+
+// backup for non-scope browsers
+.primary {
+    background-color: $primary-0;
+    color: $secondary-0;
+}
+
+@scope (.primary) {
     :scope {
-        background-color: $oblivion;
-        color: $ether;
+        background-color: $primary-0;
+        color: $secondary-0;
     }
+
     ::selection {
-        background-color: $teal;
-        color: $oblivion;
+        background-color: light-dark($flamingo, $teal);
+        color: $primary-0;
     }
-    .ramp {
-        background-color: $foundation;
-    }
-    .ramp .ramp {
-        background-color: $slate;
-    }
-    :scope.scrollable, .scrollable {
-        scrollbar-color: $ether transparent;
-    }
-    @scope (.blog) {
-        h2::before, h3::before {
-            background: linear-gradient(to bottom, transparent 0%, $oblivion 100%);
+
+    @include blog-heading-fade($primary-0);
+
+    @scope (.ramp) {
+        :scope {
+            background-color: $primary-1;
+        }
+
+        @include blog-heading-fade($primary-1);
+
+        @scope (.ramp) {
+            :scope {
+                background-color: $primary-2;
+            }            
+
+            @include blog-heading-fade($primary-2);
         }
     }
 }
-@mixin light {
+
+// backup for non-scope browsers
+.secondary {
+    background-color: $secondary-0;
+    color: $primary-0;
+}
+
+@scope (.secondary) {
     :scope {
-        background-color: $ether;
-        color: $oblivion;
+        background-color: $secondary-0;
+        color: $primary-0;
     }
+
     ::selection {
-        background-color: $flamingo;
-        color: $ether;
+        background-color: light-dark($teal, $flamingo);
+        color: $secondary-0;
     }
-    .ramp {
-        background-color: $eggshell;
-    }
-    .ramp .ramp {
-        background-color: $beige;
-    }
-    :scope.scrollable, .scrollable {
-        scrollbar-color: $oblivion transparent;
-    }
-    @scope (.blog) {
-        h2::before, h3::before {
-            background: linear-gradient(to bottom, transparent 0%, $ether 100%);
+
+    @include blog-heading-fade($secondary-0);
+
+    @scope (.ramp) {
+        :scope {
+            background-color: $secondary-1;
+        }
+
+        @include blog-heading-fade($secondary-1);
+
+        @scope (.ramp) {
+            :scope {
+                background-color: $secondary-2;
+            }
+
+            @include blog-heading-fade($secondary-2);
         }
     }
 }
 
-@media (prefers-color-scheme: light) {
-    @scope (.primary) {
-        @include light
-    }
+// Blog Headings
 
-    @scope (.secondary) {
-        @include dark
-    }
+.blog h2 {
+    position: sticky;
+    top: 0rem;
+    z-index: 5;
 }
-@media (prefers-color-scheme: dark) {
-    @scope (.primary) {
-        @include dark
-    }
-
-    @scope (.secondary) {
-        @include light
-    }
+.blog h3 {
+    position: sticky;
+    top: 3.5rem;
+    z-index: 4;
 }
-@media (prefers-color-scheme: no-preference) {
-    @scope (.primary) {
-        @include dark
-    }
-
-    @scope (.secondary) {
-        @include light
-    }
+.blog h2::before, .blog h3::before {
+    content: "";
+    position: absolute;
+    top: -1rem;
+    left: 0;
+    width: 100%;
+    height: 1rem;
+    pointer-events: none;
+}
+.blog h1, .blog h2, .blog h3 {
+    border-bottom: 2px solid;
 }
 
-/* Text */
+// Text
 
 div, h1, h2, h3, p, ul, li {
     background-color: inherit;
@@ -166,34 +203,30 @@ blockquote {
     padding-left: 1rem;
     border-left: 2px solid;
 }
-@scope (div.sourceCode) {
-    :scope {
-        color: inherit;
-        width: fit-content;
-        border: 2px solid;
-        padding: 1rem;
-        border-radius: 1rem;
-    }
 
-    /* keyword */
-    span.kw {
-        color: $gold;
-        font-weight: bold;
-    }
-
-    /* operator */
-    span.op {
-        color: $pop-star;
-        font-weight: semi-bold;
-    }
-
-    /* comment */
-    span.co {
-        color: $neutral;
-    }
+div.sourceCode {
+    color: inherit;
+    width: fit-content;
+    border: 2px solid;
+    padding: 1rem;
+    border-radius: 1rem;
+}
+// keyword
+div.sourceCode span.kw {
+    color: $gold;
+    font-weight: bold;
+}
+// operator
+div.sourceCode span.op {
+    color: $pop-star;
+    font-weight: semi-bold;
+}
+// comment
+div.sourceCode span.co {
+    color: $neutral;
 }
 
-/* Details Setup */
+// Details Section
 
 .summary-icon {
     transition: font-variation-settings 200ms ease-out;
@@ -241,7 +274,7 @@ details + .detail > * {
     overflow: hidden;
 }
 
-/* Flex Structuring */
+// Flex Structuring
 
 .container {
     gap: 2rem;
@@ -249,6 +282,14 @@ details + .detail > * {
 }
 .centering {
     align-items: center;
+}
+.spaced {
+    justify-content: space-between;
+}
+.mildly-padded {
+    padding: 1rem;
+    border-radius: 1rem;
+
 }
 .padded {
     padding: 2rem;
@@ -294,7 +335,7 @@ details + .detail > * {
     display: flex;
 }
 
-/* Grid Structuring */
+// Grid Structuring
 
 .stack {
     display: grid;
@@ -310,10 +351,13 @@ details + .detail > * {
     align-self: stretch;
 }
 
-/* Distinctions */
+// Distinctions
 
 .warning {
     color: $warning;
+}
+.faded {
+    color: $neutral;
 }
 .tape {
   background-image: url('/warning.svg');
@@ -340,29 +384,28 @@ details + .detail > * {
     scrollbar-color: $ether transparent;
 }
 
-/* Blog Specific */
+// Forms
 
-@scope (.blog) {
-    h2 {
-        position: sticky;
-        top: 0rem;
-        z-index: 5;
+.popup:has(input[type="checkbox"].close:checked) {
+    display: none;
+}
+
+input[type="checkbox"].close {
+    display: none;
+}
+
+label:has(input[type="checkbox"].close) {
+    cursor: pointer;
+}
+
+// Misc
+
+@scope (body) {
+    .scope-warning {
+        display: none;
     }
-    h3 {
-        position: sticky;
-        top: 3.5rem;
-        z-index: 4;
-    }
-    h2::before, h3::before {
-        content: "";
-        position: absolute;
-        top: -1rem;
-        left: 0;
-        width: 100%;
-        height: 1rem;
-        pointer-events: none;
-    }
-    h1, h2, h3 {
-        border-bottom: 2px solid;
-    }
+}
+
+* + .default {
+    display: none !important;
 }

@@ -7,17 +7,7 @@
 
 *The reader should be familiar with programming using channels for concurrency or parallelism, and references in strongly typed systems*
 
-<div class="horizontal container" style="gap: 1rem;">
-
-*The symbol*
-
-<details><summary>
-<span class="attention material-symbols-outlined summary-icon">group_work</span>
-</summary></details>
-
-*will incidate a consise category-theory dense explanation for those so inclined*
-
-</div>
+*The symbol* ::[summary_icon]:: *will incidate a consise category-theory dense explanation for those so inclined*
 
 ## Introduction
 
@@ -50,7 +40,7 @@ The type `a ~= b` (with the same precedence as `->`) represents an [isomorphism]
 
 ## Intro To Linear Logic
 
-<div class="vertical container h2-content">
+::[h2_content[::
 
 I will be using `~a` to refer to the type representing a consumer of type `a` that cannot be duplicated or discarded, specifically we have a function:
 ```hs
@@ -66,16 +56,11 @@ The parallel (disjunctive) product type will be written `a || b`. Its instances 
 
 Both of these product types are commutative (there exists `a, b ~= b, a` and `a || b ~= b || a`).
 
-<div>
-<details><summary><div class="horizontal centering container" style="gap: 1rem;">
-  <span class="attention material-symbols-outlined summary-icon">
-    group_work
-  </span>
+::[details[::
 
 **What constitutes a product type?**
 
-</div></summary></details>
-<div class="ramp detail attention-border"><div class="vertical container">
+::], [::
 
 A bifunctor `P` is a **product type** iff:
 
@@ -85,15 +70,14 @@ A bifunctor `P` is a **product type** iff:
 - `P` is [strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the *conjunctive* product (`,`) commuting with the associators and the lifting morphism.
 - `P` is co-[strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the *disjunctive* product (`||`) commuting with the associators and the lifting morphism.
 
-</div></div><div class="detail"><div class="vertical container">
+::], [::
 
 A **product type** is:
 
 - Associative.
 - An inclusive super-type of (`,`) and an inclusive sub-type of (`||`).
 
-</div></div>
-</div>
+::]]::
 
 There is however one thing you *are* allowed to do:
 ```hs
@@ -121,27 +105,21 @@ For example, if you are left with but a single value in the parallel product you
 extract_parallel :: a || () -> Future a
 ```
 
-<div>
-<details><summary><div class="horizontal centering container" style="gap: 1rem;">
-  <span class="attention material-symbols-outlined summary-icon">
-    group_work
-  </span>
+::[details[::
 
 **How may you use a `Future`?**
 
-</div></summary></details>
-<div class="ramp detail attention-border"><div class="vertical container">
+::], [::
 
 The covariant functor `Future` is a monad.
 
-</div></div><div class="detail"><div class="vertical container">
+::], [::
 
 The `Future` generic behaves more or less how it does in most languages with `async`.
 
 Although it lacks the ability to be polled in custom ways.
 
-</div></div>
-</div>
+::]]::
 
 ### Naive Mutation
 
@@ -156,7 +134,7 @@ In such a system borrowing has the following signature:
 borrowMut :: a -> InOut a || a
 ```
 
-</div>
+::]]::
 
 ## Problem Statement
 
@@ -187,9 +165,9 @@ Current linear logic has no way to represent a *directed* flow of information an
 
 > It is this specific issue that I have now fixed.
 
-## Chiral Linear Logic <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
+## Chiral Linear Logic ::[wip]::
 
-<div class="vertical container h2-content">
+::[h2_content[::
 
 ### The Chiral Product
 
@@ -207,7 +185,7 @@ Said with our new terms:
 - The *future* may depend on the *present*.
 - But the *present* may **not** depend on the *future*.
 
-### Purity <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
+### Purity ::[wip]::
 
 Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
 
@@ -215,49 +193,39 @@ Let us define a new type `pure a` consisting of all instances of `a` that have n
 
 In our example `Int` is a **pure** type.
 
-<div>
-<details><summary><div class="horizontal centering container" style="gap: 1rem;">
-  <span class="attention material-symbols-outlined summary-icon">
-    group_work
-  </span>
+::[details[::
 
 **How can can you create `pure` values?**
 
-</div></summary></details>
-<div class="ramp detail attention-border"><div class="vertical container">
+::], [::
 
 More autistic yap yap yap.
 
-</div></div><div class="detail"><div class="vertical container">
+::], [::
 
 Yap yap yap.
 
-</div></div>
-</div>
+::]]::
 
-<div>
-<details><summary><div class="horizontal centering container" style="gap: 1rem;">
-  <span class="attention material-symbols-outlined summary-icon">
-    group_work
-  </span>
+::[details[::
 
 **Why is purity preserved in the future?**
 
 ...
 
-</div></summary></details>
-<div class="ramp detail attention-border"><div class="vertical container">
+
+::], [::
 
 More autistic yap yap yap.
 
-</div></div><div class="detail"><div class="vertical container">
+
+::], [::
 
 Yap yap yap.
 
-</div></div>
-</div>
+::]]::
 
-### Borrowing <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
+### Borrowing ::[wip]::
 
 ...
 
@@ -267,29 +235,23 @@ mutate :: pure (a -> b >> a) -> &mut a -> b
 
 ...
 
-<div>
-<details><summary><div class="horizontal centering container" style="gap: 1rem;">
-  <span class="attention material-symbols-outlined summary-icon">
-    group_work
-  </span>
+::[details[::
 
 **Why may a `&mut (pure a)` be safely treated as a `&mut a`?**
 
-</div></summary></details>
-<div class="ramp detail attention-border"><div class="vertical container">
+::], [::
 
 More autistic yap yap yap.
 
-</div></div><div class="detail"><div class="vertical container">
+::], [::
 
 Yap yap yap.
 
-</div></div>
-</div>
+::]]::
 
-</div>
+::]]::
 
-## An Algebraic Approach to Mutation <span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>
+## An Algebraic Approach to Mutation ::[wip]::
 
 We now have the tools to tackle our original problem (and a lot more).
 
