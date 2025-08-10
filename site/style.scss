@@ -13,9 +13,8 @@ img, picture, video, canvas, svg {
     max-width: 100%;
 }
 body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
 }
     
 $oblivion: #100819;
@@ -52,81 +51,80 @@ $secondary-1: light-dark($foundation, $eggshell);
 $secondary-2: light-dark($slate, $beige);
 
 @mixin blog-heading-fade($bg) {
-    .blog h2::before, .blog h3::before {
+    & .blog h2::before, & .blog h3::before {
         background: linear-gradient(to bottom, transparent 0%, $bg 100%);
     }
 }
 
-// backup for non-scope browsers
-.primary, .primary .ramp, .primary .forward-theme {
-    background-color: $primary-0;
-    color: $secondary-0;
+@mixin blog-ramp-heading-fade($bg) {
+    & .blog .ramp h2::before, & .blog .ramp h3::before,
+    & .ramp .blog h2::before, & .ramp .blog h3::before {
+        background: linear-gradient(to bottom, transparent 0%, $bg 100%);
+    }
 }
 
-@scope (.primary) {
-    :scope, .ramp, .forward-theme {
-        background-color: $primary-0;
-        color: $secondary-0;
+@mixin blog-ramp-ramp-heading-fade($bg) {
+    & .blog .ramp .ramp h2::before, & .blog .ramp .ramp h3::before,
+    & .ramp .blog .ramp h2::before, & .ramp .blog .ramp h3::before,
+    & .ramp .ramp .blog h2::before, & .ramp .ramp .blog h3::before {
+        background: linear-gradient(to bottom, transparent 0%, $bg 100%);
     }
+}
 
-    ::selection {
+.primary {
+    & *::selection {
         background-color: light-dark($flamingo, $teal);
         color: $primary-0;
     }
 
+    &, & .forward-theme {
+        background-color: $primary-0;
+        color: $secondary-0;
+    }
+
     @include blog-heading-fade($primary-0);
 
-    @scope (.ramp) {
-        :scope, .forward-theme {
-            background-color: $primary-1;
-        }
-
-        @include blog-heading-fade($primary-1);
-
-        @scope (.ramp) {
-            :scope, .forward-theme {
-                background-color: $primary-2;
-            }            
-
-            @include blog-heading-fade($primary-2);
-        }
-    }
-}
-
-// backup for non-scope browsers
-.secondary, .secondary .ramp, .secondary .forward-theme {
-    background-color: $secondary-0;
-    color: $primary-0;
-}
-
-@scope (.secondary) {
-    :scope, .ramp, .forward-theme {
-        background-color: $secondary-0;
-        color: $primary-0;
+    & .ramp, & .ramp .forward-theme {
+        background-color: $primary-1;
+        color: $secondary-0;
     }
 
-    ::selection {
+    @include blog-ramp-heading-fade($primary-1);
+
+    & .ramp .ramp, & .ramp .ramp .forward-theme {
+        background-color: $primary-2;
+        color: $secondary-0;
+    }
+
+    @include blog-ramp-ramp-heading-fade($primary-2);
+}
+
+.secondary {
+    & *::selection {
         background-color: light-dark($teal, $flamingo);
         color: $secondary-0;
     }
 
+    &, & .forward-theme {
+        background-color: $secondary-0;
+        color: $primary-0;
+    }
+
     @include blog-heading-fade($secondary-0);
 
-    @scope (.ramp) {
-        :scope, .forward-theme {
-            background-color: $secondary-1;
-        }
-
-        @include blog-heading-fade($secondary-1);
-
-        @scope (.ramp) {
-            :scope, .forward-theme {
-                background-color: $secondary-2;
-            }
-
-            @include blog-heading-fade($secondary-2);
-        }
+    & .ramp, & .ramp .forward-theme {
+        background-color: $secondary-1;
+        color: $primary-0;
     }
+
+    @include blog-ramp-heading-fade($secondary-1);
+
+    & .ramp .ramp, & .ramp .ramp .forward-theme {
+        background-color: $secondary-2;
+        color: $primary-0;
+    }
+
+    @include blog-ramp-ramp-heading-fade($secondary-2);
 }
 
 // Blog Headings
@@ -134,11 +132,13 @@ $secondary-2: light-dark($slate, $beige);
 .blog h2 {
     position: sticky;
     top: 0rem;
+    height: 3.5rem;
     z-index: 5;
 }
 .blog h3 {
     position: sticky;
     top: 3.5rem;
+    height: 3rem;
     z-index: 4;
 }
 .blog h2::before, .blog h3::before {
@@ -180,11 +180,9 @@ h1 {
 }
 h2 {
     font-size: 2.5rem;
-    height: 3.5rem;
 }
 h3 {
     font-size: 2rem;
-    height: 3rem;
 }
 h1, h2, h3 {
     font-family: 'Russo One', sans-serif;
@@ -285,7 +283,6 @@ details ~ blockquote.detail > * {
 .mildly-padded {
     padding: 1rem;
     border-radius: 1rem;
-
 }
 .padded {
     padding: 2rem;
@@ -347,6 +344,20 @@ details ~ blockquote.detail > * {
     align-self: stretch;
 }
 
+// General Structuring
+
+.pressure-no-propogate {
+    position: relative;
+}
+
+.pressure-no-propogate > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
 // Distinctions
 
 .warning {
@@ -356,12 +367,12 @@ details ~ blockquote.detail > * {
     color: $neutral;
 }
 .tape {
-  background-image: url('/warning.svg');
-  background-repeat: repeat-x;
-  background-size: 2rem 2rem;
-  height: 2rem;
-  min-height: 2rem;
-  width: 100%;
+    background-image: url('/warning.svg');
+    background-repeat: repeat-x;
+    background-size: 2rem 2rem;
+    height: 2rem;
+    min-height: 2rem;
+    width: 100%;
 }
 .bordered {
     border: 2px solid;
@@ -395,12 +406,6 @@ label:has(input[type="checkbox"].close) {
 }
 
 // Misc
-
-@scope (body) {
-    .scope-warning {
-        display: none;
-    }
-}
 
 * + .default {
     display: none !important;

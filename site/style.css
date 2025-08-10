@@ -16,88 +16,73 @@ img, picture, video, canvas, svg {
 }
 
 body {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
 }
 
-.primary, .primary .ramp, .primary .forward-theme {
+.primary *::selection {
+  background-color: light-dark(#ef99a0, #41ac99);
+  color: light-dark(#f4f1ee, #100819);
+}
+.primary, .primary .forward-theme {
   background-color: light-dark(#f4f1ee, #100819);
   color: light-dark(#100819, #f4f1ee);
 }
-
-@scope (.primary) {
-  :scope, .ramp, .forward-theme {
-    background-color: light-dark(#f4f1ee, #100819);
-    color: light-dark(#100819, #f4f1ee);
-  }
-  ::selection {
-    background-color: light-dark(#ef99a0, #41ac99);
-    color: light-dark(#f4f1ee, #100819);
-  }
-  .blog h2::before, .blog h3::before {
-    background: linear-gradient(to bottom, transparent 0%, light-dark(#f4f1ee, #100819) 100%);
-  }
-  @scope (.ramp) {
-    :scope, .forward-theme {
-      background-color: light-dark(#e9dfd4, #1b1626);
-    }
-    .blog h2::before, .blog h3::before {
-      background: linear-gradient(to bottom, transparent 0%, light-dark(#e9dfd4, #1b1626) 100%);
-    }
-    @scope (.ramp) {
-      :scope, .forward-theme {
-        background-color: light-dark(#e3cfba, #241e31);
-      }
-      .blog h2::before, .blog h3::before {
-        background: linear-gradient(to bottom, transparent 0%, light-dark(#e3cfba, #241e31) 100%);
-      }
-    }
-  }
+.primary .blog h2::before, .primary .blog h3::before {
+  background: linear-gradient(to bottom, transparent 0%, light-dark(#f4f1ee, #100819) 100%);
 }
-.secondary, .secondary .ramp, .secondary .forward-theme {
+.primary .ramp, .primary .ramp .forward-theme {
+  background-color: light-dark(#e9dfd4, #1b1626);
+  color: light-dark(#100819, #f4f1ee);
+}
+.primary .blog .ramp h2::before, .primary .blog .ramp h3::before, .primary .ramp .blog h2::before, .primary .ramp .blog h3::before {
+  background: linear-gradient(to bottom, transparent 0%, light-dark(#e9dfd4, #1b1626) 100%);
+}
+.primary .ramp .ramp, .primary .ramp .ramp .forward-theme {
+  background-color: light-dark(#e3cfba, #241e31);
+  color: light-dark(#100819, #f4f1ee);
+}
+.primary .blog .ramp .ramp h2::before, .primary .blog .ramp .ramp h3::before, .primary .ramp .blog .ramp h2::before, .primary .ramp .blog .ramp h3::before, .primary .ramp .ramp .blog h2::before, .primary .ramp .ramp .blog h3::before {
+  background: linear-gradient(to bottom, transparent 0%, light-dark(#e3cfba, #241e31) 100%);
+}
+
+.secondary *::selection {
+  background-color: light-dark(#41ac99, #ef99a0);
+  color: light-dark(#100819, #f4f1ee);
+}
+.secondary, .secondary .forward-theme {
   background-color: light-dark(#100819, #f4f1ee);
   color: light-dark(#f4f1ee, #100819);
 }
-
-@scope (.secondary) {
-  :scope, .ramp, .forward-theme {
-    background-color: light-dark(#100819, #f4f1ee);
-    color: light-dark(#f4f1ee, #100819);
-  }
-  ::selection {
-    background-color: light-dark(#41ac99, #ef99a0);
-    color: light-dark(#100819, #f4f1ee);
-  }
-  .blog h2::before, .blog h3::before {
-    background: linear-gradient(to bottom, transparent 0%, light-dark(#100819, #f4f1ee) 100%);
-  }
-  @scope (.ramp) {
-    :scope, .forward-theme {
-      background-color: light-dark(#1b1626, #e9dfd4);
-    }
-    .blog h2::before, .blog h3::before {
-      background: linear-gradient(to bottom, transparent 0%, light-dark(#1b1626, #e9dfd4) 100%);
-    }
-    @scope (.ramp) {
-      :scope, .forward-theme {
-        background-color: light-dark(#241e31, #e3cfba);
-      }
-      .blog h2::before, .blog h3::before {
-        background: linear-gradient(to bottom, transparent 0%, light-dark(#241e31, #e3cfba) 100%);
-      }
-    }
-  }
+.secondary .blog h2::before, .secondary .blog h3::before {
+  background: linear-gradient(to bottom, transparent 0%, light-dark(#100819, #f4f1ee) 100%);
 }
+.secondary .ramp, .secondary .ramp .forward-theme {
+  background-color: light-dark(#1b1626, #e9dfd4);
+  color: light-dark(#f4f1ee, #100819);
+}
+.secondary .blog .ramp h2::before, .secondary .blog .ramp h3::before, .secondary .ramp .blog h2::before, .secondary .ramp .blog h3::before {
+  background: linear-gradient(to bottom, transparent 0%, light-dark(#1b1626, #e9dfd4) 100%);
+}
+.secondary .ramp .ramp, .secondary .ramp .ramp .forward-theme {
+  background-color: light-dark(#241e31, #e3cfba);
+  color: light-dark(#f4f1ee, #100819);
+}
+.secondary .blog .ramp .ramp h2::before, .secondary .blog .ramp .ramp h3::before, .secondary .ramp .blog .ramp h2::before, .secondary .ramp .blog .ramp h3::before, .secondary .ramp .ramp .blog h2::before, .secondary .ramp .ramp .blog h3::before {
+  background: linear-gradient(to bottom, transparent 0%, light-dark(#241e31, #e3cfba) 100%);
+}
+
 .blog h2 {
   position: sticky;
   top: 0rem;
+  height: 3.5rem;
   z-index: 5;
 }
 
 .blog h3 {
   position: sticky;
   top: 3.5rem;
+  height: 3rem;
   z-index: 4;
 }
 
@@ -145,12 +130,10 @@ h1 {
 
 h2 {
   font-size: 2.5rem;
-  height: 3.5rem;
 }
 
 h3 {
   font-size: 2rem;
-  height: 3rem;
 }
 
 h1, h2, h3 {
@@ -330,6 +313,18 @@ details ~ blockquote.detail > * {
   align-self: stretch;
 }
 
+.pressure-no-propogate {
+  position: relative;
+}
+
+.pressure-no-propogate > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
 .warning {
   color: #f86d16;
 }
@@ -380,11 +375,6 @@ label:has(input[type=checkbox].close) {
   cursor: pointer;
 }
 
-@scope (body) {
-  .scope-warning {
-    display: none;
-  }
-}
 * + .default {
   display: none !important;
 }

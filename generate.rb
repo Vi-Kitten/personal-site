@@ -79,21 +79,35 @@ def close_button
     %Q{<label><input type="checkbox" class="close"><span class="material-symbols-outlined">close</span></label>}
 end
 
-def scope_warning
-    no_scope_support = %Q{<p>
-        Your browser does not support <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@scope">css scopes</a>!
-        As a result some things on this page may not render properly!
-    </p>}
-    box = div no_scope_support, close_button, class: ["horizontal", "spaced", "mildly-padded", "bordered", "filling", "container"]
-    div box, class: ["scope-warning", "padded", "warning", "popup"]
+# def scope_warning
+#     no_scope_support = %Q{<p>
+#         Your browser does not support <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@scope">css scopes</a>!
+#         As a result some things on this page may not render properly!
+#     </p>}
+#     box = div no_scope_support, close_button, class: ["horizontal", "spaced", "mildly-padded", "bordered", "filling", "container"]
+#     div box, class: ["scope-warning", "padded", "warning", "popup"]
+# end
+
+def show_ancestry path
+    prev = ""
+    elems = path
+        .split('/')[0...-1]
+        .map do |name|
+            prev += name + '/'
+            name = "home" unless not name.empty?
+            %Q{<a href="#{prev}index.html">#{name}</a>}
+        end
+    padded_horizontal *elems, class: ["wrapping", "secondary"]
 end
 
 def write_standard_page path, name, *elements
-    File.open("#{path}.html", 'w') do |file|
-        content = packed_vertical scope_warning, *elements
-        main_content = main content, style: "width: 60%; overflow-y: scroll;", class: ["forward-theme"]
+    File.open("site#{path}.html", 'w') do |file|
+        content = packed_vertical *elements
+        main_content = main content, style: "overflow-y: scroll;", class: ["forward-theme"]
+        scoll_pressure_wrapper = div main_content, style: "width: 60%; height: 100%;", class: ["pressure-no-propgate"]
         side = div class: ["filling", "ramp"]
-        root = packed_horizontal side, main_content, side, style: "height: 100vh; max-height: 100vh;", class: ["primary", "filling"]
+        tripple = packed_horizontal side, scoll_pressure_wrapper, side, class: ["primary", "filling"]
+        root = packed_vertical (show_ancestry path), tripple
         generated = page name, root
         file.puts generated
     end
@@ -116,7 +130,7 @@ end
 # end
 
 def write_placeholder_page path, name
-    File.open("#{path}.html", 'w') do |file|
+    File.open("site#{path}.html", 'w') do |file|
         root = div tape, under_construction, tape, style: "height: 100vh; max-height: 100vh;", class: ["primary", "packed", "vertical", "centering", "filling", "container"]
         generated = page name, root
         file.puts generated
@@ -144,8 +158,8 @@ def interpolate text
         yield eval(code)
     rescue
         STDERR.puts "---- | ---- evaluated code ----"
-        code.lines.each_with_index do |line, index|
-            STDERR.puts "#{"%04d" % (index + 1)} | #{line}"
+        code.lines.each.with_index 1 do |line, index|
+            STDERR.puts "#{"%04d" % index} | #{line}"
         end
         STDERR.puts "---- | ------------------------"
         raise
@@ -165,12 +179,8 @@ def summary_icon
     %Q{<span class="attention material-symbols-outlined summary-icon">group_work</span>}
 end
 
-def detail classes, content
-%Q{<blockquote class="detail #{classes.join " "}"><div class="vertical container">
-
-#{content}
-
-</div></blockquote>}
+def section *elements, **kwargs
+    render_tag "blockquote", [(div *elements, class: ["vertical", "container"])], kwargs
 end
 
 def details title, technical, layman=""
@@ -184,9 +194,9 @@ def details title, technical, layman=""
 
 </div></summary></details>
 
-#{detail ["ramp", "attention-border"], technical}
+#{section technical, class: ["ramp", "attention-border", "detail"]}
 
-#{detail [], layman}
+#{section layman}
 
 </div>}
 end
@@ -240,7 +250,8 @@ blog_links = now do |;intro|
             packed_vertical prose, tape, under_construction
         end
         article_content = article content, class: ["blog", "forward-theme"]
-        write_standard_page "site/blogs/#{blog_name}", page_data.name, article_content
+        write_standard_page "/blogs/#{blog_name}", page_data.name, article_content
+
         title = div %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}, class: ["centering", "horizontal", "container"]
         div title, page_data.excerpt, style: "flex-grow: 1;", class: ["ramp", "detail"]
     end
@@ -248,6 +259,6 @@ blog_links = now do |;intro|
     padded_vertical intro, card_container
 end
 
-write_placeholder_page "site/blogs/index", "Blogs"
+write_placeholder_page "/blogs/index", "Blogs"
 
-write_standard_page "site/index", "Kitsune Vi Portfolio Site", intro, blog_links, tape, under_construction
+write_standard_page "/index", "Kitsune Vi Portfolio Site", intro, blog_links, tape, under_construction

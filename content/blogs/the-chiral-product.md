@@ -165,7 +165,7 @@ Current linear logic has no way to represent a *directed* flow of information an
 
 > It is this issue that I have now fixed.
 
-## Chiral Linear Logic (CLL) ::[wip]::
+## Chiral Linear Logic ::[wip]::
 
 ::[h2_content[::
 
