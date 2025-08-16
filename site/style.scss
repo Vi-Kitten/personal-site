@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+    color-scheme: light dark;
 }
 * {
     box-sizing: border-box;
@@ -15,6 +15,8 @@ img, picture, video, canvas, svg {
 body {
     height: 100vh;
     width: 100vw;
+    display: flex;
+    flex-flow: column nowrap;
 }
     
 $oblivion: #100819;
@@ -271,8 +273,8 @@ details ~ blockquote.detail > * {
 // Flex Structuring
 
 .container {
-    gap: 2rem;
-    display: inline-flex;
+    display: flex;
+    gap: inherit;
 }
 .centering {
     align-items: center;
@@ -280,17 +282,20 @@ details ~ blockquote.detail > * {
 .spaced {
     justify-content: space-between;
 }
-.mildly-padded {
+.lightly-padded {
     padding: 1rem;
     border-radius: 1rem;
+    gap: 1rem;
 }
 .padded {
     padding: 2rem;
     border-radius: 2rem;
+    gap: 2rem;
 }
 .very-padded {
     padding: 4rem;
     border-radius: 4rem;
+    gap: 4rem;
 }
 .vertical {
     flex-flow: column;

@@ -20,15 +20,25 @@ def render_tag elem, elements, kwargs, **mixin
         kwargs[:class] += html_class
     end
 
-%Q{<#{elem} style="#{kwargs[:style]}" class="#{kwargs[:class].join " "}">
+    title = if kwargs.has_key? :title then
+        %Q{ title="#{kwargs[:title]}"}
+    else
+        ""
+    end
 
-#{elements.join "\n\n"}
-
-</#{elem}>}
+    %Q{<#{elem} style="#{kwargs[:style]}" class="#{kwargs[:class].join " "}"#{title}>#{elements.join ""}</#{elem}>}
 end
 
 def div *elements, **kwargs
     render_tag "div", elements, kwargs 
+end
+
+def span *elements, **kwargs
+    render_tag "span", elements, kwargs
+end
+
+def vertical *elements, **kwargs
+    render_tag "div", elements, kwargs, class: ["vertical", "container"]
 end
 
 def padded_vertical *elements, **kwargs
@@ -37,6 +47,10 @@ end
 
 def packed_vertical *elements, **kwargs
     render_tag "div", elements, kwargs, class: ["vertical", "packed", "container"]
+end
+
+def horizontal *elements, **kwargs
+    render_tag "div", elements, kwargs, class: ["horizontal", "container"]
 end
 
 def padded_horizontal *elements, **kwargs
@@ -55,59 +69,63 @@ def article *elements, **kwargs
     render_tag "article", elements, kwargs
 end
 
+def symbol name, **kwargs
+    render_tag "span", [name], kwargs, class: ["material-symbols-outlined"]
+end
+
 def page title, *elements
-    %Q{<!DOCTYPE html>
-    <html lang="en">
-        <head>
-            <link rel="icon" type="image/x-icon" href="/favicon.ico">
-            <title>#{title}</title>
-            <meta charset="utf-8">
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Quicksand:wght@300..700&family=Russo+One&display=swap" rel="stylesheet">
-            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24..48,400,0..1,0" rel="stylesheet" />
-            <link rel="stylesheet" href="/style.css">
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        </head>
-        <body>
-            #{elements.join}
-        </body>
-    </html>}
+%Q{<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <title>#{title}</title>
+        <meta charset="utf-8">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Quicksand:wght@300..700&family=Russo+One&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24..48,400,0..1,0" rel="stylesheet" />
+        <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+
+
+
+#{elements.join}
+
+
+
+    </body>
+</html>}
 end
 
 def close_button
-    %Q{<label><input type="checkbox" class="close"><span class="material-symbols-outlined">close</span></label>}
+    %Q{<label><input type="checkbox" class="close">#{symbol "close"}</label>}
 end
-
-# def scope_warning
-#     no_scope_support = %Q{<p>
-#         Your browser does not support <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@scope">css scopes</a>!
-#         As a result some things on this page may not render properly!
-#     </p>}
-#     box = div no_scope_support, close_button, class: ["horizontal", "spaced", "mildly-padded", "bordered", "filling", "container"]
-#     div box, class: ["scope-warning", "padded", "warning", "popup"]
-# end
 
 def show_ancestry path
     prev = ""
-    elems = path
-        .split('/')[0...-1]
-        .map do |name|
+    ancestors = path.delete_suffix("/index").split('/')
+    this = ancestors.pop || "home"
+    elems = ancestors
+        .flat_map do |name|
             prev += name + '/'
             name = "home" unless not name.empty?
-            %Q{<a href="#{prev}index.html">#{name}</a>}
+            [
+                %Q{<a href="#{prev}">#{name}</a>},
+                "⊳"
+            ]
         end
-    padded_horizontal *elems, class: ["wrapping", "secondary"]
+    horizontal *elems, %Q{<span>#{this}</span>}, class: ["wrapping", "secondary", "lightly-padded"]
 end
 
 def write_standard_page path, name, *elements
     File.open("site#{path}.html", 'w') do |file|
         content = packed_vertical *elements
         main_content = main content, style: "overflow-y: scroll;", class: ["forward-theme"]
-        scoll_pressure_wrapper = div main_content, style: "width: 60%; height: 100%;", class: ["pressure-no-propgate"]
+        scoll_pressure_wrapper = div main_content, style: "width: 60%; height: 100%;", class: ["pressure-no-propogate"]
         side = div class: ["filling", "ramp"]
         tripple = packed_horizontal side, scoll_pressure_wrapper, side, class: ["primary", "filling"]
-        root = packed_vertical (show_ancestry path), tripple
+        root = packed_vertical (show_ancestry path), tripple, class: ["filling"]
         generated = page name, root
         file.puts generated
     end
@@ -131,18 +149,18 @@ end
 
 def write_placeholder_page path, name
     File.open("site#{path}.html", 'w') do |file|
-        root = div tape, under_construction, tape, style: "height: 100vh; max-height: 100vh;", class: ["primary", "packed", "vertical", "centering", "filling", "container"]
+        root = packed_vertical (show_ancestry path), tape, under_construction, tape, style: "height: 100vh;", class: ["primary", "centering", "filling"]
         generated = page name, root
         file.puts generated
     end
 end
 
 def wip
-    %Q{<span class="warning" title="Work in progress"><span class="material-symbols-outlined">construction</span></span>}
+    symbol "construction", class: ["warning"], title: "Work in progress"
 end
 
 def theory
-    %Q{<span class="material-symbols-outlined" title="Theory">architecture</span>}
+    symbol "architecture", title: "Theory"
 end
 
 def interpolate text
@@ -150,10 +168,10 @@ def interpolate text
         .gsub("{", "{".dump)
         .gsub("}", "}".dump)
     code = "%Q{#{escaped}}"
-        .gsub("::[", "#" + "{")
-        .gsub("]::", "}")
-        .gsub("[::", " (yield %Q{")
-        .gsub("::]", "}) ")
+        .gsub("--[", "#" + "{")
+        .gsub("]--", "}")
+        .gsub("[--", " (yield %Q{")
+        .gsub("--]", "}) ")
     begin
         yield eval(code)
     rescue
@@ -176,7 +194,7 @@ def render_markdown path
 end
 
 def summary_icon
-    %Q{<span class="attention material-symbols-outlined summary-icon">group_work</span>}
+    symbol "group_work", class: ["summary-icon", "attention"]
 end
 
 def section *elements, **kwargs
@@ -204,8 +222,7 @@ end
 def h2_content content
 %Q{<div class="vertical container h2-content">
 #{content}
-</div>
-}
+</div>}
 end
 
 class PageData
@@ -240,8 +257,8 @@ blogs = {
     )
 }
 
-blog_links = now do |;intro|
-    intro = render_markdown "content/blogs-intro.md"
+blog_links = now do
+    blog_intro = render_markdown "content/blogs-intro.md"
     cards = blogs.map do |blog_name, page_data|
         prose = padded_vertical (render_markdown "content/blogs/#{blog_name}.md"), class: ["blog"]
         content = if page_data.is :complete then
@@ -252,11 +269,10 @@ blog_links = now do |;intro|
         article_content = article content, class: ["blog", "forward-theme"]
         write_standard_page "/blogs/#{blog_name}", page_data.name, article_content
 
-        title = div %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{page_data.tags.join ""}</h3>}, class: ["centering", "horizontal", "container"]
-        div title, page_data.excerpt, style: "flex-grow: 1;", class: ["ramp", "detail"]
+        title = %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{" " + (page_data.tags.join "")}</h3>}
+        section title, page_data.excerpt, class: ["ramp"]
     end
-    card_container = padded_horizontal *cards, class: ["full", "wrapping"]
-    padded_vertical intro, card_container
+    padded_vertical blog_intro, *cards
 end
 
 write_placeholder_page "/blogs/index", "Blogs"

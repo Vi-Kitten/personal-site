@@ -7,7 +7,7 @@
 
 *The reader should be familiar with programming using channels for concurrency or parallelism, and references in strongly typed systems*
 
-*The symbol* ::[summary_icon]:: *will incidate a consise category-theory dense explanation for those so inclined*
+*It is not required for you to know about category theory or type theory but certain concise explanations and technical sections may require it*
 
 ## Introduction
 
@@ -40,7 +40,7 @@ The type `a ~= b` (with the same precedence as `->`) represents an [isomorphism]
 
 ## Intro To Linear Logic
 
-::[h2_content[::
+--[h2_content[--
 
 I will be using `~a` to refer to the type representing a consumer of type `a` that cannot be duplicated or discarded, specifically we have a function:
 ```hs
@@ -56,11 +56,11 @@ The parallel (disjunctive) product type will be written `a || b`. Its instances 
 
 Both of these product types are commutative (there exists `a, b ~= b, a` and `a || b ~= b || a`).
 
-::[details[::
+--[details[--
 
 **What constitutes a product type?**
 
-::], [::
+--], [--
 
 A bifunctor `P` is a **product type** iff:
 
@@ -70,14 +70,14 @@ A bifunctor `P` is a **product type** iff:
 - `P` is [strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the *conjunctive* product (`,`) commuting with the associators and the lifting morphism.
 - `P` is co-[strong](https://ncatlab.org/nlab/show/tensorial+strength#definition) over the *disjunctive* product (`||`) commuting with the associators and the lifting morphism.
 
-::], [::
+--], [--
 
 A **product type** is:
 
 - Associative.
 - An inclusive super-type of (`,`) and an inclusive sub-type of (`||`).
 
-::]]::
+--]]--
 
 There is however one thing you *are* allowed to do:
 ```hs
@@ -105,21 +105,21 @@ For example, if you are left with but a single value in the parallel product you
 extract_parallel :: a || () -> Future a
 ```
 
-::[details[::
+--[details[--
 
 **How may you use a `Future`?**
 
-::], [::
+--], [--
 
 The covariant functor `Future` is a monad.
 
-::], [::
+--], [--
 
 The `Future` generic behaves more or less how it does in most languages with `async`.
 
 Although it lacks the ability to be polled in custom ways.
 
-::]]::
+--]]--
 
 ### Naive Mutation
 
@@ -134,7 +134,7 @@ In such a system borrowing has the following signature:
 borrowMut :: a -> InOut a || a
 ```
 
-::]]::
+--]]--
 
 ## Problem Statement
 
@@ -165,9 +165,9 @@ Current linear logic has no way to represent a *directed* flow of information an
 
 > It is this issue that I have now fixed.
 
-## Chiral Linear Logic ::[wip]::
+## Sequential Linear Logic (SLL) --[wip]--
 
-::[h2_content[::
+--[h2_content[--
 
 ### The Chiral Product
 
@@ -185,7 +185,7 @@ Said with our new terms:
 - The *future* may depend on the *present*.
 - But the *present* may **not** depend on the *future*.
 
-### Purity ::[wip]::
+### Purity --[wip]--
 
 Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
 
@@ -193,39 +193,39 @@ Let us define a new type `pure a` consisting of all instances of `a` that have n
 
 In our example `Int` is a **pure** type.
 
-::[details[::
+--[details[--
 
 **How can can you create `pure` values?**
 
-::], [::
+--], [--
 
 More autistic yap yap yap.
 
-::], [::
+--], [--
 
 Yap yap yap.
 
-::]]::
+--]]--
 
-::[details[::
+--[details[--
 
 **Why is purity preserved in the future?**
 
 ...
 
 
-::], [::
+--], [--
 
 More autistic yap yap yap.
 
 
-::], [::
+--], [--
 
 Yap yap yap.
 
-::]]::
+--]]--
 
-### Borrowing ::[wip]::
+### Borrowing --[wip]--
 
 ...
 
@@ -235,23 +235,23 @@ mutate :: pure (a -> b >> a) -> &mut a -> b
 
 ...
 
-::[details[::
+--[details[--
 
 **Why may a `&mut (pure a)` be safely treated as a `&mut a`?**
 
-::], [::
+--], [--
 
 More autistic yap yap yap.
 
-::], [::
+--], [--
 
 Yap yap yap.
 
-::]]::
+--]]--
 
-::]]::
+--]]--
 
-## An Algebraic Approach to Mutation ::[wip]::
+## An Algebraic Approach to Mutation --[wip]--
 
 We now have the tools to tackle our original problem (and a lot more).
 
