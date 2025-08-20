@@ -8,6 +8,7 @@
   margin: 0; /* should be exclusively controlled by parents */
   border: 0;
   list-style-position: inside;
+  gap: inherit;
 }
 
 img, picture, video, canvas, svg {
@@ -228,7 +229,6 @@ details ~ blockquote.detail > * {
 
 .container {
   display: flex;
-  gap: inherit;
 }
 
 .centering {

@@ -105,7 +105,7 @@ For example, if you are left with but a single value in the parallel product you
 extract_parallel :: a || () -> Future a
 ```
 
---[details[--
+<!-- --[details[--
 
 **How may you use a `Future`?**
 
@@ -119,7 +119,7 @@ The `Future` generic behaves more or less how it does in most languages with `as
 
 Although it lacks the ability to be polled in custom ways.
 
---]]--
+--]]-- -->
 
 ### Naive Mutation
 
@@ -131,7 +131,7 @@ Allowing you to modify by value, and send the result to the owner once you are d
 
 In such a system borrowing has the following signature:
 ```hs
-borrowMut :: a -> InOut a || a
+borrowInOut :: a -> InOut a || a
 ```
 
 --]]--
@@ -151,7 +151,7 @@ a + b
 Let us try and construct this with the tools above.
 
 - First we start with a pair of values `1, 2` of type `Int, Int`.
-- Next we can borrow each to get `(InOut Int || Int), (InOut Int || Int)`.
+- Next we can use `BorrowInOut` on each to get `(InOut Int || Int), (InOut Int || Int)`.
 - Which we can feed into `link` getting `(InOut Int, InOut Int) || Int || Int`.
 - Now that both mutable references can be used together we can swap them and we are left with `Int || Int`.
 - And from here... from here we are stuck.
@@ -165,7 +165,7 @@ Current linear logic has no way to represent a *directed* flow of information an
 
 > It is this issue that I have now fixed.
 
-## Sequential Linear Logic (SLL) --[wip]--
+## The Ingredients --[wip]--
 
 --[h2_content[--
 
@@ -185,67 +185,100 @@ Said with our new terms:
 - The *future* may depend on the *present*.
 - But the *present* may **not** depend on the *future*.
 
+This allows more freedom in composition then par (`||`) as directed channels better avoid directed cycles:
+```hs
+weave :: (a >> b) -> (c >> d) -> (a, c) >> (b, d)
+```
+
 ### Purity --[wip]--
 
 Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
 
-Let us define a new type `pure a` consisting of all instances of `a` that have no values depending on how they are used, if all instances of a type satisfy this property we call the type itself **pure**. 
+Let us define a new type `Pure a` consisting of all instances of `a` that have no capacity to *send* information to the rest of the program, if all instances of a type satisfy this property we call the type itself **pure**.
 
 In our example `Int` is a **pure** type.
 
 --[details[--
 
-**How can can you create `pure` values?**
+**How can can you create `Pure` values?**
 
 --], [--
 
-More autistic yap yap yap.
+`Pure` is a comonadic modality that is strong monoidal over positive conjunctives.
 
 --], [--
 
-Yap yap yap.
+From smaller pure values and from pure processes that only take in pure values.
+
+Non-trivial pure instances tend to require a decent amount of effort to construct.
 
 --]]--
 
---[details[--
+Importantly, purity can persist into the future, as by definition the future can have no effect on the present:
+```hs
+depend :: Pure (a >> b) -> a >> Pure b
+```
 
-**Why is purity preserved in the future?**
-
-...
-
-
---], [--
-
-More autistic yap yap yap.
-
-
---], [--
-
-Yap yap yap.
-
---]]--
+This also goes the other way around, not only do product types tell us how we can use `Pure`, `Pure` can tell us how to refine the product types as so:
+```hs
+sequence :: a || Pure b -> a >> Pure b
+isolate :: Pure a >> b -> a, b
+```
 
 ### Borrowing --[wip]--
 
-...
+Finally we must replace our naive mutation type `InOut` with a primitive custom tailored to this system.
 
+The idea is to leverage what we have already to provide both contet and constraint to properly define safe mutation:
 ```hs
-mutate :: pure (a -> b >> a) -> &mut a -> b
+borrow :: a -> &mut a >> a
+
+mutate :: &mut a -> Pure (a -> b >> a) -> b
 ```
 
-...
+> Shockingly this only takes two axioms.
+
+This signature of `mutate` ensures that impurities cannot be introduced to the value being modified, protecting the strict garuntees of the chiral product.
+This also means it is safe to treat a `&mut (Pure a)` as a `&mut a`, removing a potential function colouring issue.
+
+There is however one thing I must add as an axiom that I have not yet found a way to prove, and that is the swapping of pure values.
+In general the system cannot analyse *mutual* mutation, if anyone reading would wish to ponder this I would be very greatful.
+For now the following must be added as axiom:
+```hs
+swap :: &mut (Pure a), &mut (Pure a) -> ()
+```
 
 --[details[--
 
-**Why may a `&mut (pure a)` be safely treated as a `&mut a`?**
+**My notes on mutual mutation.**
 
 --], [--
 
-More autistic yap yap yap.
+It may perhaps be correct to generalise the `mutate` rule to accept a product of mutable references as input and force a certain structure to be preserved whilst emmiting a value. Intuitively such a rule *should* allow one handle 2 orthogonal mutations at the same time, returning a tuple of the result, whilst allowing room for some extra safe interaction.
 
---], [--
+The following allows orthogonal mutations:
 
-Yap yap yap.
+```hs
+mutate_pair :: &mut a0, &mut a1 -> Pure (a0, a1 -> b >> (a0, a1)) -> b
+```
+
+But introduces deadlocks, as one mutable reference may outlive the other with no way to tell.
+
+We could introduce an alternative definition:
+
+```hs
+mutate_pair :: &mut a0, &mut a1 -> Pure (a0 || a1 -> b >> (a0 || a1)) -> b
+```
+
+However this, despite being more restrictive, this is still unsafe!
+
+The issue is we have no clue how these mutable references relate to each other, it not safe to consume them assuming they are conjunctive and its not safe to update them assuming they are disjunctive, the only safe implementation is:
+
+```hs
+mutate_pair :: &mut a0, &mut a1 -> Pure (a0 || a1 -> b >> (a0, a1)) -> b
+```
+
+Which is so restrictive as to be a joke, nonetheless this is the best I can come up with.
 
 --]]--
 
@@ -253,5 +286,21 @@ Yap yap yap.
 
 ## An Algebraic Approach to Mutation --[wip]--
 
-We now have the tools to tackle our original problem (and a lot more).
+We now ready to face our original problem:
+```rs
+let mut a = 1
+let mut b = 2
 
+swap (&mut a) (&mut b)
+
+a + b
+```
+
+We will now construct this program with our new tools.
+
+- We again start with a pair of values `1, 2` of type `Int, Int`.
+- Then we can `bororw` each `(&mut Int >> Int), (&mut Int >> Int)`.
+- Now we can `weave` them together, getting `(&mut Int, &mut Int) >> (Int, Int)`.
+- We can leverage the fact that `Int` is always **pure** to get `(&mut (Pure Int), &mut (Pure Int)) >> (Int, Int)`.
+- Letting us apply `swap` to the borrowed values, leaving `(Int, Int)`.
+- And finally, our resulting values are no longer in parallel, and we can add them together, getting just `Int` remaining.

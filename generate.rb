@@ -165,15 +165,16 @@ end
 
 def interpolate text
     escaped = text
-        .gsub("{", "{".dump)
-        .gsub("}", "}".dump)
-    code = "%Q{#{escaped}}"
+        .gsub("{", "\\{")
+        .gsub("}", "\\}")
+        .gsub("\\", "\\\\")
+    code = "yield %Q{#{escaped}}"
         .gsub("--[", "#" + "{")
         .gsub("]--", "}")
         .gsub("[--", " (yield %Q{")
         .gsub("--]", "}) ")
     begin
-        yield eval(code)
+        eval(code)
     rescue
         STDERR.puts "---- | ---- evaluated code ----"
         code.lines.each.with_index 1 do |line, index|
@@ -201,7 +202,7 @@ def section *elements, **kwargs
     render_tag "blockquote", [(div *elements, class: ["vertical", "container"])], kwargs
 end
 
-def details title, technical, layman=""
+def details title, technical, layman=nil
 %Q{<div>
 
 <details><summary><div class="horizontal centering container" style="gap: 1rem;">
@@ -214,7 +215,7 @@ def details title, technical, layman=""
 
 #{section technical, class: ["ramp", "attention-border", "detail"]}
 
-#{section layman}
+#{if layman.nil? then "" else section layman end}
 
 </div>}
 end
