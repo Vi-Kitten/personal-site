@@ -1,20 +1,24 @@
 # The Chiral Product: An Algebraic Approach to Mutation in Linearly Typed Systems
 
-> I will show that by adjoining a chiral product type to linear typing one can represent objects with channels between them like the disjunctive product,
+<!-- > I will show that by adjoining a chiral product type to linear typing one can represent objects with channels between them like the disjunctive product,
 > but with the added constraint that information only flows one way,
 > that is to say that the behaviour of eliminating the past cannot depend on the elimination of the future.
-> This produces a finer gradation of product types that I will demonstrate invaluable in constructing a purely algebraic approach to mutation handling.
+> This produces a finer gradation of product types that I will demonstrate invaluable in constructing a purely algebraic approach to mutation handling. -->
+
+> By adding a non-commutative product type to linear logic we can represent directed communication, and hence the flow of time.
+> Such a system can very naturally represent mutation and I hope that by the end of this you see the same promise in this system that I do.
 
 *The reader should be familiar with programming using channels for concurrency or parallelism, and references in strongly typed systems*
 
-*It is not required for you to know about category theory or type theory but certain concise explanations and technical sections may require it*
+*It is not required for you to know about category theory or type theory but certain concise explanations and technical sections may require it.*
+*These sections will be annotated with the following symbol (* --[summary_icon]-- *) as not to spook more casual readers.*
 
 ## Introduction
 
 Mutation handling in languages tend to have 3 main goals that up until now have formed an impossible triangle:
 
 - Safety:
-  Often in the form of memory aliasing rules, safety is important to ensure memory is not corrupted from the coexistence of incompatible reference types.
+  Often in the form of memory aliasing rules, safety is important to ensure memory is not corrupted from different regions of code operating on the same region of memory.
 - Versatility:
   A solution to mutation handling can only be as effective as its domain of application is broad, at the end of the day all systems have their limits but a system that is too weak can lead its users to write against the language and not with it.
 - Simplicity:
@@ -22,33 +26,52 @@ Mutation handling in languages tend to have 3 main goals that up until now have 
 
 Most languages have historically opted to ditch safety in favour of versatility and simplicity. This naively maximises the space of valid programs and in doing so diluting what it even means for a program to be valid.
 
-Some languages provide safety and simplicity, usually by leveraging calling conventions. The downside of this is that because captures are not represented in the type system - they cannot be processed using custom data-structures - only with language provided control flow. It is important to note that this is often sufficient for a wide variety of use cases.
+Some languages provide safety and simplicity, usually by leveraging calling conventions. The downside of is that because captures are not represented in the type system, they cannot be processed using custom data-structures, only with language provided control flow. It is important to note that this is often sufficient for a wide variety of use cases.
 
-Finally, and gaining traction, are approaches that maximise versatility whilst maintaining safety. This includes type level abstractions like state monad transformers, lenses, and lifetimes. These approaches have a certain virality, often prompting and subsequently complicating large refactors by introducing a lot of book-keeping which can be hard to encapsulate.
+Finally, and gaining traction, are approaches that maximise versatility whilst maintaining safety. This includes type level abstractions like state monad transformers, and lifetimes. These approaches have a certain virality, often prompting and subsequently complicating large refactors by introducing a lot of book-keeping which can be hard to encapsulate.
 
-I aim to solve the above problems whilst maintaining the deadlock free guarantee from linear typing, allowing for the writing of strongly normalising languages that are safe, versatile, and simple to use.
+I aim to make progress towards a solution that solves **all** the above problems whilst maintaining the deadlock free guarantee from linear typing, hopefully allowing for the writing of strongly normalising languages that are safe, versatile, and simple to use.
 
 ## Preface
 
 Haskell syntax will be used for talking about the type system itself, specifically in terms of the operations we are allowed to do.
 A rust inspired syntax will then be used to describe the programs we would like to represent.
 
+It is important to specify that all resources are consumed **by value** unless specified otherwise, even when I am using Haskell syntax.
+I was debating wether to use syntax from the experimental GHC extension [linaer haskell](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/linear_types.html) to express this, but decided against it for the sake of clarity.
+When I say something like "duplicate" or "drop" I am on about a process that is done by value, as opposed to cloning by immutable reference or implementing destructor logic by mutable reference.
+
 The type `a -> b` represents a function from type `a` to type `b`.
 
 The type `a ~= b` (with the same precedence as `->`) represents an [isomorphism](https://en.wikipedia.org/wiki/Isomorphism) between type `a` and type `b`
 (meaning `a` and `b` can be swapped between by value without complication).
 
-## Intro To Linear Logic
+## Intro To Linear Typing
 
 --[h2_content[--
 
-I will be using `~a` to refer to the type representing a consumer of type `a` that cannot be duplicated or discarded, specifically we have a function:
+Many readers will be familiar with the [rust language](https://www.rust-lang.org/), which uses a type system that doesn't assume that provided resources can be duplicated, this is called Affine typing in the technical lingo. Linear typing takes this one step further and also does not assume that a provided resource can be dropped.
+
+Written in terms of contracts between different areas of the program:
+
+- Entitlements may not be exceeded.
+- Obligations may not be avoided.
+
+The first type we have to introduce is called the **linear consumer**, denoted `~a`.
+It is satisfied by consuming a single instance of `a` and notably cannot be duplicated or discarded (this is similar to [`oneshot::Sender`](https://docs.rs/futures/latest/futures/channel/oneshot/struct.Sender.html) in rust).
+
+The nature of its consumption is defined by the function:
 ```hs
 cut :: a, ~a -> ()
 ```
-That combines the vaues together, satisfying the consumer.
+
+Which combines the values together, annihilating them both.
 
 ### Product Types
+
+One of the main advantages of linear typing is that it makes deadlocks impossible, allowing you to guarantee halting in your programs.
+
+...
 
 The regular (conjunctive) product type will be written `a, b`. Its instances are comprised of two **entirely independent** values which you can do with as you please, this is the product type as you are used to it.
 
@@ -81,7 +104,7 @@ A **product type** is:
 
 There is however one thing you *are* allowed to do:
 ```hs
-link :: a || b -> c || d -> (a, c) || b || d
+link :: (a || b), (c || d) -> (a, c) || b || d
 ```
 Which provides a way to handle a pair of values with absolute freedom, so long as they originated as parts of independent products.
 This is safe because, despite the fact that `b` and `d` can now potentially communicate, they are now composed in parallel, barring future communication and thus preventing a deadlock.
@@ -91,7 +114,7 @@ One of the most important uses of `||` is safely typing *channels*, for example:
 oneshot :: ~a || a
 ```
 
-### Continuations
+<!-- ### Continuations
 
 In linear logic a `Future` is simply a consumer of a consumer:
 ```hs
@@ -105,7 +128,7 @@ For example, if you are left with but a single value in the parallel product you
 extract_parallel :: a || () -> Future a
 ```
 
-<!-- --[details[--
+--[details[--
 
 **How may you use a `Future`?**
 
@@ -151,7 +174,7 @@ a + b
 Let us try and construct this with the tools above.
 
 - First we start with a pair of values `1, 2` of type `Int, Int`.
-- Next we can use `BorrowInOut` on each to get `(InOut Int || Int), (InOut Int || Int)`.
+- Next we can use `borrowInOut` on each to get `(InOut Int || Int), (InOut Int || Int)`.
 - Which we can feed into `link` getting `(InOut Int, InOut Int) || Int || Int`.
 - Now that both mutable references can be used together we can swap them and we are left with `Int || Int`.
 - And from here... from here we are stuck.
@@ -284,7 +307,7 @@ Which is so restrictive as to be a joke, nonetheless this is the best I can come
 
 --]]--
 
-## An Algebraic Approach to Mutation --[wip]--
+## All Together Now --[wip]--
 
 We now ready to face our original problem:
 ```rs
@@ -304,3 +327,7 @@ We will now construct this program with our new tools.
 - We can leverage the fact that `Int` is always **pure** to get `(&mut (Pure Int), &mut (Pure Int)) >> (Int, Int)`.
 - Letting us apply `swap` to the borrowed values, leaving `(Int, Int)`.
 - And finally, our resulting values are no longer in parallel, and we can add them together, getting just `Int` remaining.
+
+## Conclusion --[wip]--
+
+Yippe rawr I have the shineys.

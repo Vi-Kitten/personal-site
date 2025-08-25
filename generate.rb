@@ -163,6 +163,10 @@ def theory
     symbol "architecture", title: "Theory"
 end
 
+def functional_programming
+    symbol "function", title: "Functional Programming"
+end
+
 def interpolate text
     escaped = text
         .gsub("{", "\\{")
@@ -243,6 +247,7 @@ class PageData
     def tags
         html = []
         if is :theory then html.push theory end
+        if is :func then html.push functional_programming end
         html.push wip unless is :complete
         html
     end
@@ -255,6 +260,11 @@ blogs = {
         "The Chiral Product",
         "<p>An algebraic approach to mutation in linearly typed systems.</p>",
         :theory
+    ),
+    "handling-weak-monads" => PageData.new(
+        "Handling Weak Monads Using Folds",
+        "<p>Linear and affine typing breaks do blocks, this is how we fix can them.</p>",
+        :func
     )
 }
 
@@ -276,6 +286,6 @@ blog_links = now do
     padded_vertical blog_intro, *cards
 end
 
-write_placeholder_page "/blogs/index", "Blogs"
+write_standard_page "/blogs/index", "Blogs", blog_links, tape, under_construction
 
-write_standard_page "/index", "Kitsune Vi Portfolio Site", intro, blog_links, tape, under_construction
+write_standard_page "/index", "Kitsune Vi Portfolio Site", intro, blog_links
