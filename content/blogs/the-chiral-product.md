@@ -26,7 +26,7 @@ Mutation handling in languages tend to have 3 main goals that up until now have 
 
 Most languages have historically opted to ditch safety in favour of versatility and simplicity. This naively maximises the space of valid programs and in doing so diluting what it even means for a program to be valid.
 
-Some languages provide safety and simplicity, usually by leveraging calling conventions. The downside of is that because captures are not represented in the type system, they cannot be processed using custom data-structures, only with language provided control flow. It is important to note that this is often sufficient for a wide variety of use cases.
+Some languages provide safety and simplicity, usually by leveraging calling conventions. The downside of is that because captures are not represented in the type system, they cannot be processed using custom data-structures, only with language provided control flow. *It is important to note that this is often sufficient for a wide variety of use cases*.
 
 Finally, and gaining traction, are approaches that maximise versatility whilst maintaining safety. This includes type level abstractions like state monad transformers, and lifetimes. These approaches have a certain virality, often prompting and subsequently complicating large refactors by introducing a lot of book-keeping which can be hard to encapsulate.
 
@@ -41,10 +41,13 @@ It is important to specify that all resources are consumed **by value** unless s
 I was debating wether to use syntax from the experimental GHC extension [linaer haskell](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/linear_types.html) to express this, but decided against it for the sake of clarity.
 When I say something like "duplicate" or "drop" I am on about a process that is done by value, as opposed to cloning by immutable reference or implementing destructor logic by mutable reference.
 
-The type `a -> b` represents a function from type `a` to type `b`.
+For those unfamiliar with haskell:
 
-The type `a ~= b` (with the same precedence as `->`) represents an [isomorphism](https://en.wikipedia.org/wiki/Isomorphism) between type `a` and type `b`
-(meaning `a` and `b` can be swapped between by value without complication).
+- The symbol `::` binds the identifier on the left to the type on the right (I know its dumb).
+- The type `a -> b` represents a function from type `a` to type `b`.
+
+<!-- The type `a ~= b` (with the same precedence as `->`) represents an [isomorphism](https://en.wikipedia.org/wiki/Isomorphism) between type `a` and type `b`
+(meaning `a` and `b` can be swapped between by value without complication). -->
 
 ## Intro To Linear Typing
 
@@ -62,24 +65,47 @@ It is satisfied by consuming a single instance of `a` and notably cannot be dupl
 
 The nature of its consumption is defined by the function:
 ```hs
-cut :: a, ~a -> ()
+send :: (a, ~a) -> ()
 ```
 
 Which combines the values together, annihilating them both.
 
-### Product Types
+### Structs
 
 One of the main advantages of linear typing is that it makes deadlocks impossible, allowing you to guarantee halting in your programs.
 
-...
+To see how, suppose we naively implement the [oneshot channel](https://docs.rs/futures/latest/futures/channel/oneshot/fn.channel.html), similar to how it is in rust:
+```hs
+oneshot :: () -> (~a, Future a)
+```
 
-The regular (conjunctive) product type will be written `a, b`. Its instances are comprised of two **entirely independent** values which you can do with as you please, this is the product type as you are used to it.
+Using this we can construct the following **deadlock** causing program:
+```rs
+let sender, reciever = channel()
+let value = reciever.await
+send(value, sender)
+```
+
+The issue here is that we were allowed to use both the sender *and* the reciever in the same scope.
+
+To make this **impossible** linear logic introduces *parallel structs*, a way to store multiple values that must be used entirely independently, often by construting seperate independent scopes.
+
+The simplest of these structures is called *par*, *par* is to parallel structs what *tuple* is to regular structs.
+
+> The *par* of two types `a` and `b` is written `a || b`.
+
+<!-- The regular (conjunctive) product type will be written `a, b`. Its instances are comprised of two **entirely independent** values which you can do with as you please, this is the product type as you are used to it.
 
 The parallel (disjunctive) product type will be written `a || b`. Its instances are comprised of two **arbitrarily dependent** values which you must handle with care, restricting your options significantly, as you are forced by the rules of linear logic to disallow any form of interaction lest you introduce a deadlock.
 
-Both of these product types are commutative (there exists `a, b ~= b, a` and `a || b ~= b || a`).
+Both of these product types are commutative (there exists `a, b ~= b, a` and `a || b ~= b || a`). -->
 
---[details[--
+This lets us implement our original channel safely!:
+```hs
+oneshot :: () -> (~a || a)
+```
+
+<!-- --[details[--
 
 **What constitutes a product type?**
 
@@ -100,18 +126,17 @@ A **product type** is:
 - Associative.
 - An inclusive super-type of (`,`) and an inclusive sub-type of (`||`).
 
---]]--
+--]]-- -->
 
-There is however one thing you *are* allowed to do:
-```hs
-link :: (a || b), (c || d) -> (a, c) || b || d
-```
-Which provides a way to handle a pair of values with absolute freedom, so long as they originated as parts of independent products.
-This is safe because, despite the fact that `b` and `d` can now potentially communicate, they are now composed in parallel, barring future communication and thus preventing a deadlock.
+As stated so far parallel structs are very limited, this is important for safety garuntees but I still need to explain what they *can* do, not just what they *can't* do.
 
-One of the most important uses of `||` is safely typing *channels*, for example:
+Parallel structs may be destructured and then used to construct new parallel structs so long as what is initially forced to be handled in parallel stays in parallel. This raises the question of what you can do with values from two seperate parallel structs?
+
+A single pair of values from two seperate parallel structs may be used together, with absolute freedom, this *connects* the original structs forcing the result and all other values to be handled in parallel. This forces a tree structure on *connections*, avoiding deadlocks.
+
+In the case of par this allows us to define:
 ```hs
-oneshot :: ~a || a
+link :: ((a || b), (c || d)) -> ((a, c) || b || d)
 ```
 
 <!-- ### Continuations
@@ -148,13 +173,14 @@ Although it lacks the ability to be polled in custom ways.
 
 The typical way to formulate a mutable reference in a linearly typed system is to model it as a value-consumer pair:
 ```hs
-type InOut a = a, ~a
+type InOut a = (a, ~a)
 ```
-Allowing you to modify by value, and send the result to the owner once you are done.
+
+...allowing you to modify by value, and send the result to the owner once you are done!
 
 In such a system borrowing has the following signature:
 ```hs
-borrowInOut :: a -> InOut a || a
+borrowInOut :: a -> (InOut a || a)
 ```
 
 --]]--
