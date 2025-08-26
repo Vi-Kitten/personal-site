@@ -73,12 +73,13 @@ def symbol name, **kwargs
     render_tag "span", [name], kwargs, class: ["material-symbols-outlined"]
 end
 
-def page title, *elements
+def page title, *elements, meta: ""
 %Q{<!DOCTYPE html>
 <html lang="en">
     <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico">
         <title>#{title}</title>
+        #{meta}
         <meta charset="utf-8">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -118,7 +119,7 @@ def show_ancestry path
     horizontal *elems, %Q{<span>#{this}</span>}, class: ["wrapping", "secondary", "lightly-padded"]
 end
 
-def write_standard_page path, name, *elements
+def write_standard_page path, name, *elements, meta: ""
     File.open("site#{path}.html", 'w') do |file|
         content = packed_vertical *elements
         main_content = main content, style: "overflow-y: scroll;", class: ["forward-theme"]
@@ -126,7 +127,7 @@ def write_standard_page path, name, *elements
         side = div class: ["filling", "ramp"]
         tripple = packed_horizontal side, scoll_pressure_wrapper, side, class: ["primary", "filling"]
         root = packed_vertical (show_ancestry path), tripple, class: ["filling"]
-        generated = page name, root
+        generated = page name, root, meta: meta
         file.puts generated
     end
 end
@@ -169,14 +170,16 @@ end
 
 def interpolate text
     escaped = text
+        .gsub("\\", "\\\\")
         .gsub("{", "\\{")
         .gsub("}", "\\}")
-        .gsub("\\", "\\\\")
     code = "yield %Q{#{escaped}}"
-        .gsub("--[", "#" + "{")
-        .gsub("]--", "}")
-        .gsub("[--", " (yield %Q{")
-        .gsub("--]", "}) ")
+        .gsub("<!--", '#{"" or %q{')
+        .gsub("-->", '}}')
+        .gsub("--[", '#{')
+        .gsub("]--", '}')
+        .gsub("[--", ' (yield %Q{')
+        .gsub("--]", '}) ')
     begin
         eval(code)
     rescue
@@ -198,12 +201,28 @@ def render_markdown path
     end
 end
 
-def summary_icon
-    symbol "group_work", class: ["summary-icon", "attention"]
-end
+# def summary_icon
+#     symbol "group_work", class: ["summary-icon", "attention"]
+# end
 
 def section *elements, **kwargs
     render_tag "blockquote", [(div *elements, class: ["vertical", "container"])], kwargs
+end
+
+def notes title, content
+%Q{<div>
+
+<details><summary><div class="horizontal centering container" style="gap: 1rem;">
+
+#{symbol "note_alt", class: ["attention", "dropdown-icon"]}
+
+#{title}
+
+</div></summary></details>
+
+#{section content, class: ["ramp", "attention-border", "detail"]}
+
+</div>}
 end
 
 def details title, technical, layman=nil
@@ -251,6 +270,14 @@ class PageData
         html.push wip unless is :complete
         html
     end
+
+    def open_graph url
+%Q{
+<meta property="og:url" content="#{url}"/>
+<meta property="og:title" content="#{@name}"/>
+<meta property="og:description" content="#{@excerpt}"/>
+}
+    end
 end
 
 intro = padded_vertical (render_markdown "content/intro.md")
@@ -258,12 +285,13 @@ intro = padded_vertical (render_markdown "content/intro.md")
 blogs = {
     "the-chiral-product" => PageData.new(
         "The Chiral Product",
-        "<p>An algebraic approach to mutation in linearly typed systems.</p>",
-        :theory
+        "An algebraic approach to mutation in linearly typed systems.",
+        :theory,
+        :complete
     ),
     "handling-weak-monads" => PageData.new(
         "Handling Weak Monads Using Folds",
-        "<p>Linear and affine typing breaks do blocks, this is how we fix can them.</p>",
+        "Linear and affine typing breaks do blocks, this is how we fix can them.",
         :func
     )
 }
@@ -278,10 +306,10 @@ blog_links = now do
             packed_vertical prose, tape, under_construction
         end
         article_content = article content, class: ["blog", "forward-theme"]
-        write_standard_page "/blogs/#{blog_name}", page_data.name, article_content
+        write_standard_page "/blogs/#{blog_name}", page_data.name, article_content, meta: (page_data.open_graph "https://kitsune-vi.dev/blogs/#{blog_name}")
 
         title = %Q{<h3><a href="/blogs/#{blog_name}.html">#{page_data.name}</a>#{" " + (page_data.tags.join "")}</h3>}
-        section title, page_data.excerpt, class: ["ramp"]
+        section title, "<p>#{page_data.excerpt}</p>", class: ["ramp"]
     end
     padded_vertical blog_intro, *cards
 end

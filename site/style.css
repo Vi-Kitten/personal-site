@@ -177,12 +177,12 @@ div.sourceCode span.co {
   color: #4c6a76;
 }
 
-.summary-icon {
+.dropdown-icon {
   transition: font-variation-settings 200ms ease-out;
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
-details[open] > summary .summary-icon {
+details[open] > summary .dropdown-icon {
   font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 

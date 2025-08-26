@@ -10,8 +10,8 @@
 
 *The reader should be familiar with programming using channels for concurrency or parallelism, and references in strongly typed systems*
 
-*It is not required for you to know about category theory or type theory but certain concise explanations and technical sections may require it.*
-*These sections will be annotated with the following symbol (* --[summary_icon]-- *) as not to spook more casual readers.*
+<!-- *It is not required for you to know about category theory or type theory but certain concise explanations and technical sections may require it.*
+*These sections will be annotated with the following symbol (* --[summary_icon]-- *) as not to spook more casual readers.* -->
 
 ## Introduction
 
@@ -196,7 +196,7 @@ We now have the context to analyse the following program with linear typing:
 let mut a = 1
 let mut b = 2
 
-swap (&mut a) (&mut b)
+swap(&mut a, &mut b)
 
 a + b
 ```
@@ -206,7 +206,7 @@ Lets try to construct this with the tools above.
 - We start with a pair of values `1, 2` of type `Int, Int`.
 - Next lets apply `borrowInOut` to each value to get `(InOut Int || Int), (InOut Int || Int)`.
 - This sets us up to use `link`, this modifies the state to `(InOut Int, InOut Int) || Int || Int`.
-- Both mutable references can now be used together so we can swap them, leaving us with `Int || Int`.
+- Both mutable references can now be used together so we can `swap` them, leaving us with `Int || Int`.
 - And from here... from here we are stuck.
 
 Our values are now in parallel and must be handled separately, meaning we can't do the final step of adding them together.
@@ -219,7 +219,7 @@ Current linear typing has no way to represent a *directed* flow of information a
 
 > It is this specific capacity, that I have now introduced!
 
-## The Ingredients --[wip]--
+## The Ingredients
 
 --[h2_content[--
 
@@ -240,7 +240,7 @@ The chiral product is interesting, its natural counterpart is... itself! This is
 weave :: ((a >> b), (c >> d)) -> ((a, c) >> (b, d))
 ```
 
-### Purity --[wip]--
+### Purity
 
 Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
 
@@ -290,7 +290,7 @@ retain :: () -> (~(Pure a) >> Pure a)
 
 Using this with `weave` lets us send pure values to the future without worry!
 
-### Borrowing --[wip]--
+### Borrowing
 
 Finally, what we have all *hopefully* been waiting for, the mutation handling!
 We can finally replace `&inout` with a primitive custom tailored to this system.
@@ -306,6 +306,8 @@ mutate :: (&mut a, Pure (a -> b >> a)) -> b
 ```
 
 > Shockingly this only takes two axioms.
+>
+> From these axioms one may derive dereferencing, mutable member access, matching through mutation, and the chaining of mutable borrows.
 
 The signature of `mutate` ensures that impurities cannot be introduced to the value being modified, this keeps the strict garuntees of the chiral product producted agains sneaky deadlocks.
 This also means it is safe to treat a `&mut (Pure a)` as a `&mut a`, removing a potential function colouring issue that we can codify with a 3rd and final mutation axiom:
@@ -318,9 +320,10 @@ Although this is hardly the snazziest thing one can do with a `&mut (Pure a)`, b
 inout :: &mut (Pure a) -> &inout (Pure a)
 ```
 
-This means that for pure values `&mut` and `&inout` are essentially the same, simplifying operations dramatically.
+This means that for pure values `&mut` and `&inout` are the same, simplifying operations dramatically.
+Specifically, for simple types `S` we have can cast from `&mut S` to `&inout S` without risking deadlocks.
 
---[details[--
+--[notes[--
 
 **My notes on mutual mutation.**
 
@@ -331,7 +334,7 @@ It may perhaps be correct to generalise the `mutate` rule to accept a product of
 The following allows orthogonal mutations:
 
 ```hs
-mutate_pair :: (&mut a0, &mut a1) -> (Pure (a0, a1 -> b >> (a0, a1)) -> b)
+mutate_pair :: (&mut a0, &mut a1, Pure (a0, a1 -> b >> (a0, a1))) -> b
 ```
 
 But introduces deadlocks, as one mutable reference may outlive the other with no way to tell.
@@ -339,7 +342,7 @@ But introduces deadlocks, as one mutable reference may outlive the other with no
 We could introduce an alternative definition:
 
 ```hs
-mutate_pair :: (&mut a0, &mut a1) -> (Pure (a0 || a1 -> b >> (a0 || a1)) -> b)
+mutate_pair :: (&mut a0, &mut a1, Pure (a0 || a1 -> b >> (a0 || a1))) -> b
 ```
 
 However this, despite being more restrictive, this is still unsafe!
@@ -347,36 +350,41 @@ However this, despite being more restrictive, this is still unsafe!
 The issue is we have no clue how these mutable references relate to each other, it not safe to consume them assuming they are conjunctive and its not safe to update them assuming they are disjunctive, the only safe implementation is:
 
 ```hs
-mutate_pair :: (&mut a0, &mut a1) -> (Pure (a0 || a1 -> b >> (a0, a1)) -> b)
+mutate_pair :: (&mut a0, &mut a1, Pure (a0 || a1 -> b >> (a0, a1))) -> b
 ```
 
-Which is so restrictive as to be a joke, and I don't think it gets you anything over single mutations, nonetheless this is the best I can come up with.
+Which is so restrictive as to be a joke, and I don't think it gets you anything over two single mutations, nonetheless this is the best I can come up with within the system as it is right now.
 
 --]]--
 
 --]]--
 
-## All Together Now --[wip]--
+## All Together Now
 
-We now ready to face our original problem:
+We now ready to face our original problem once-more:
 ```rs
 let mut a = 1
 let mut b = 2
 
-swap (&mut a) (&mut b)
+swap(&mut a, &mut b)
 
 a + b
 ```
 
-We will now construct this program with our new tools.
+We will now construct this program with our *new* tools.
 
 - We again start with a pair of values `1, 2` of type `Int, Int`.
-- Then we can `bororw` each `(&mut Int >> Int), (&mut Int >> Int)`.
-- Now we can `weave` them together, getting `(&mut Int, &mut Int) >> (Int, Int)`.
-- We can leverage the fact that `Int` is always **pure** to get `(&mut (Pure Int), &mut (Pure Int)) >> (Int, Int)`.
-- Letting us apply `swap` to the borrowed values, leaving `(Int, Int)`.
-- And finally, our resulting values are no longer in parallel, and we can add them together, getting just `Int` remaining.
+- Like before we `borrow` each value, this time using `&mut`, getting `(&mut Int >> Int), (&mut Int >> Int)`.
+- Our new system now lets us `weave` the chiral products together, getting `(&mut Int, &mut Int) >> (Int, Int)`.
+- Because `Int` is **simple**, `&mut Int` is the same as `&inout Int`, letting us cast to `(&inout Int, &inout Int) >> (Int, Int)`.
+- This sets us up to perform our `swap` on the borrowed values, leaving `(Int, Int)`.
+- And finally, unlike before, our resulting values can be used together, letting us add them together, returning `Int` from our block.
 
-## Conclusion --[wip]--
+## Conclusion
 
-Yippe rawr I have the shineys.
+Phew! That was quite a lot of work to build up to!
+
+I hope you see the potential of this system like I do; we did safe, sane mutation without a single lifetime!
+The system can do a lot more then this, and I consider it a great step forward for mutation handling, but I would be lying if I said I considered it sufficient on its own.
+
+I aim to use this system as a way to encapsulate viral elements of a more expressive mutation system, hopefully that won't take another 2 to 3 years!

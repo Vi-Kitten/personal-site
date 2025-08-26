@@ -64,7 +64,7 @@ But in linear logic there is no garuntee that `x: a` can safely captured by a fu
 
 ### Tensorial Strength --[wip]--
 
---[details[--
+<!-- --[details[--
 
 **What is tensoral strength?**
 
@@ -81,4 +81,4 @@ A functor `F` is `W`-strong with respect to some connective `**` if we can defin
 absorb :: (W a) ** (F b) -> F (a ** b)
 ```
 
---]]--
+--]]-- -->
