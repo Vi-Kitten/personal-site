@@ -26,7 +26,7 @@ Mutation handling in languages tend to have 3 main goals that up until now have 
 
 Most languages have historically opted to ditch safety in favour of versatility and simplicity. This naively maximises the space of valid programs and in doing so diluting what it even means for a program to be valid.
 
-Some languages provide safety and simplicity, usually by leveraging calling conventions. The downside of is that because captures are not represented in the type system, they cannot be processed using custom data-structures, only with language provided control flow. *It is important to note that this is often sufficient for a wide variety of use cases*.
+Some languages provide safety and simplicity, usually by leveraging calling conventions. The downside is that because captures are not represented in the type system, they cannot be processed using custom data-structures, only with language provided control flow. *It is important to note that this is often sufficient for a wide variety of use cases*.
 
 Finally, and gaining traction, are approaches that maximise versatility whilst maintaining safety. This includes type level abstractions like state monad transformers, and lifetimes. These approaches have a certain virality, often prompting and subsequently complicating large refactors by introducing a lot of book-keeping which can be hard to encapsulate.
 
@@ -39,7 +39,7 @@ I will use a bastardised Haskell syntax for talking about the type system itself
 A rust inspired syntax will then be used to describe the programs we would like to represent.
 
 It is important to specify that all resources are consumed **by value** unless specified otherwise, even when I am using Haskell syntax.
-I was debating wether to use syntax from the experimental GHC extension [linaer haskell](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/linear_types.html) to express this, but decided against it for the sake of clarity.
+I was debating wether to use syntax from the experimental GHC extension [linear haskell](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/linear_types.html) to express this, but decided against it for the sake of clarity.
 When I say something like "duplicate" or "drop" I am on about a process that is done by value, as opposed to cloning by immutable reference or implementing destructor logic by mutable reference.
 
 For those unfamiliar with haskell:
@@ -99,7 +99,7 @@ A **product type** is:
 Product types allow developers to type data consisting of multiple values with their own types, if this sounds familiar, thats because it is!
 Its essentially a *struct* type.
 
-One of the main advantages of linear typing is that it makes deadlocks impossible, allowing you to guarantee halting in your programs.
+One of the main advantages of linear typing is that it makes deadlocks impossible, allowing you to **guarantee** halting in your programs, provided you restrict programs to inductive control flow and recursive forms.
 
 To see how, suppose we naively implement the [oneshot channel](https://docs.rs/futures/latest/futures/channel/oneshot/fn.channel.html), similar to how it is in rust:
 ```hs
@@ -132,7 +132,7 @@ This lets us implement our original channel safely!:
 oneshot :: () -> (~a || a)
 ```
 
-As stated so far parallel structs are very limited, this is important for safety garuntees but I still need to explain what they *can* do, not just what they *can't* do.
+As stated so far parallel structs are very limited, this is important for safety guarantees but I still need to explain what they *can* do, not just what they *can't* do.
 
 Parallel structs may be destructured and then used to construct new parallel structs so long as what is initially forced to be handled in parallel stays in parallel. This raises the question of what you can do with values from two seperate parallel structs?
 
@@ -238,7 +238,7 @@ The chiral product is like an inbetween of the tuple (`a, b`) and par (`a || b`)
 Where the tuple holds values that don't communicate at all, and par holds values that may communicate arbitrarily, the chiral product has *directional* communication.
 The value on the left which we call the *present* can send information to the value on the right which we call the *future* but importantly, this does not go the other way around!
 
-> *The past may not depend on the future*.
+> *The present may not depend on the future*.
 
 This ends up being incredibly useful, the tuples natural counterpart is par, and the natural counterpart of par is the tuple; they fit together nicely, one as computation, the other as data.
 The chiral product is interesting, its natural counterpart is... itself! This is codified in the following rule:
@@ -256,7 +256,7 @@ step :: (() >> a) -> a
 
 Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
 
-In less *fun* type systems purity is considered a property of the whole language, this is often described as a garuntee that evaluating the same piece of code will always give the same result, we can express this as a property of values instead.
+In less *fun* type systems purity is considered a property of the whole language, this is often expressed as the guarantee that evaluating the same piece of code will always give the same result, we can express this as a property of values instead.
 A value is pure if it cannot communicate information to any other part of the program, it may have its own rich channel structure, but so long as it can't effect anything else its none of our concern.
 
 We can now introduce our next ingredient, the `Pure` *modality*! 
@@ -281,7 +281,7 @@ Non-trivial pure instances tend to require a decent amount of effort to construc
 
 --]]-- -->
 
-This tends to be a rather tricky property to create, so lets go over how it can be used!
+This tends to be a rather tricky property to create, so lets go over how it can be preserved and used!
 
 Purity can persist into the future, as by definition the future can have no effect on the present:
 ```hs
@@ -321,7 +321,7 @@ mutate :: (&mut a, Pure (a -> b >> a)) -> b
 >
 > From these axioms one may derive dereferencing, mutable member access, matching through mutation, and the chaining of mutable borrows.
 
-The signature of `mutate` ensures that impurities cannot be introduced to the value being modified, this keeps the strict garuntees of the chiral product producted agains sneaky deadlocks.
+The signature of `mutate` ensures that impurities cannot be introduced to the value being modified, this keeps the strict guarantees of the chiral product producted agains sneaky deadlocks.
 This also means it is safe to treat a `&mut (Pure a)` as a `&mut a`, removing a potential function colouring issue that we can codify with a 3rd and final mutation axiom:
 ```hs
 demote :: &mut (Pure a) -> &mut a
