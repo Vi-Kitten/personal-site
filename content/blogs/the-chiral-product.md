@@ -115,7 +115,7 @@ send(value, sender)
 
 The issue here is that we were allowed to use both the sender *and* the reciever in the same scope.
 
-To make this **impossible** linear typing introduces *parallel structs*, a way to store multiple values that must be used entirely independently, often by construting seperate independent scopes.
+To make this **impossible** linear typing introduces *parallel structs*, a way to store multiple values that must be used entirely independently, often by construting seperate independent scopes. The values these strange new structs contain can be thought of as futures that could be communicating behind the struct in arbitrary ways.
 
 The simplest of these structures is called *par*, *par* (the parallel product) is to parallel structs what *tuple* (the normal product) is to regular structs.
 
@@ -187,6 +187,11 @@ In such a system borrowing has the following signature:
 borrowInOut :: a -> (&inout a || a)
 ```
 
+And we can define cool funtions on these mutable reference types like:
+```hs
+swap :: (&inout a, &inout a) -> ()
+```
+
 --]]--
 
 ## Problem Statement
@@ -204,9 +209,10 @@ a + b
 Lets try to construct this with the tools above.
 
 - We start with a pair of values `1, 2` of type `Int, Int`.
-- Next lets apply `borrowInOut` to each value to get `(InOut Int || Int), (InOut Int || Int)`.
-- This sets us up to use `link`, this modifies the state to `(InOut Int, InOut Int) || Int || Int`.
-- Both mutable references can now be used together so we can `swap` them, leaving us with `Int || Int`.
+- Next lets apply `borrowInOut` to each value to get `(&inout Int || Int), (&inout Int || Int)`.
+- This sets us up to use `link`, this modifies the state to `(&inout Int, &inout Int) || Int || Int`.
+- Both mutable references can now be used together so we can `swap` them, leaving us with `() || Int || Int`.
+- Simplifying this down we get `Int || Int`.
 - And from here... from here we are stuck.
 
 Our values are now in parallel and must be handled separately, meaning we can't do the final step of adding them together.
@@ -238,6 +244,12 @@ This ends up being incredibly useful, the tuples natural counterpart is par, and
 The chiral product is interesting, its natural counterpart is... itself! This is codified in the following rule:
 ```hs
 weave :: ((a >> b), (c >> d)) -> ((a, c) >> (b, d))
+```
+
+You can interpret the chiral product `a >> b >> c` as a sequence of statements that must be evaluated from left to right, eventually our first statement will be entirely handled leaving just `()` remaining, when this is the case we can move on to the next statement, and repeat:
+
+```hs
+step :: (() >> a) -> a
 ```
 
 ### Purity
@@ -273,7 +285,7 @@ This tends to be a rather tricky property to create, so lets go over how it can 
 
 Purity can persist into the future, as by definition the future can have no effect on the present:
 ```hs
-depend :: Pure (a >> b) -> a >> Pure b
+depend :: Pure (a >> b) -> (a >> Pure b)
 ```
 
 The information that purity provides also allows us to refine our product types into more useful forms:
@@ -375,10 +387,11 @@ We will now construct this program with our *new* tools.
 
 - We again start with a pair of values `1, 2` of type `Int, Int`.
 - Like before we `borrow` each value, this time using `&mut`, getting `(&mut Int >> Int), (&mut Int >> Int)`.
-- Our new system now lets us `weave` the chiral products together, getting `(&mut Int, &mut Int) >> (Int, Int)`.
+- Our new system now lets us `weave` the chiral products together, creating `(&mut Int, &mut Int) >> (Int, Int)`.
 - Because `Int` is **simple**, `&mut Int` is the same as `&inout Int`, letting us cast to `(&inout Int, &inout Int) >> (Int, Int)`.
-- This sets us up to perform our `swap` on the borrowed values, leaving `(Int, Int)`.
-- And finally, unlike before, our resulting values can be used together, letting us add them together, returning `Int` from our block.
+- This sets us up to perform our `swap` on the borrowed values, leaving `() >> (Int, Int)`.
+- The swapping statement is now finished allowing us to `step` forward, making the future our new present, giving `(Int, Int)`.
+- And finally, unlike before, our resulting values can be combined, letting us add them together, returning `Int` from our block.
 
 ## Conclusion
 
