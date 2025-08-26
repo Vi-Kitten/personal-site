@@ -5,7 +5,7 @@
 > that is to say that the behaviour of eliminating the past cannot depend on the elimination of the future.
 > This produces a finer gradation of product types that I will demonstrate invaluable in constructing a purely algebraic approach to mutation handling. -->
 
-> By adding a non-commutative product type to linear logic we can represent directed communication, and hence the flow of time.
+> By adding a non-commutative product type to linear typing we can represent directed communication, and hence the flow of time.
 > Such a system can very naturally represent mutation and I hope that by the end of this you see the same promise in this system that I do.
 
 *The reader should be familiar with programming using channels for concurrency or parallelism, and references in strongly typed systems*
@@ -34,7 +34,8 @@ I aim to make progress towards a solution that solves **all** the above problems
 
 ## Preface
 
-Haskell syntax will be used for talking about the type system itself, specifically in terms of the operations we are allowed to do.
+I will use a bastardised Haskell syntax for talking about the type system itself in terms of building blocks we can compose together.
+
 A rust inspired syntax will then be used to describe the programs we would like to represent.
 
 It is important to specify that all resources are consumed **by value** unless specified otherwise, even when I am using Haskell syntax.
@@ -70,40 +71,7 @@ send :: (a, ~a) -> ()
 
 Which combines the values together, annihilating them both.
 
-### Structs
-
-One of the main advantages of linear typing is that it makes deadlocks impossible, allowing you to guarantee halting in your programs.
-
-To see how, suppose we naively implement the [oneshot channel](https://docs.rs/futures/latest/futures/channel/oneshot/fn.channel.html), similar to how it is in rust:
-```hs
-oneshot :: () -> (~a, Future a)
-```
-
-Using this we can construct the following **deadlock** causing program:
-```rs
-let sender, reciever = channel()
-let value = reciever.await
-send(value, sender)
-```
-
-The issue here is that we were allowed to use both the sender *and* the reciever in the same scope.
-
-To make this **impossible** linear logic introduces *parallel structs*, a way to store multiple values that must be used entirely independently, often by construting seperate independent scopes.
-
-The simplest of these structures is called *par*, *par* is to parallel structs what *tuple* is to regular structs.
-
-> The *par* of two types `a` and `b` is written `a || b`.
-
-<!-- The regular (conjunctive) product type will be written `a, b`. Its instances are comprised of two **entirely independent** values which you can do with as you please, this is the product type as you are used to it.
-
-The parallel (disjunctive) product type will be written `a || b`. Its instances are comprised of two **arbitrarily dependent** values which you must handle with care, restricting your options significantly, as you are forced by the rules of linear logic to disallow any form of interaction lest you introduce a deadlock.
-
-Both of these product types are commutative (there exists `a, b ~= b, a` and `a || b ~= b || a`). -->
-
-This lets us implement our original channel safely!:
-```hs
-oneshot :: () -> (~a || a)
-```
+### Product Types
 
 <!-- --[details[--
 
@@ -127,6 +95,42 @@ A **product type** is:
 - An inclusive super-type of (`,`) and an inclusive sub-type of (`||`).
 
 --]]-- -->
+
+Product types allow developers to type data consisting of multiple values with their own types, if this sounds familiar, thats because it is!
+Its essentially a *struct* type.
+
+One of the main advantages of linear typing is that it makes deadlocks impossible, allowing you to guarantee halting in your programs.
+
+To see how, suppose we naively implement the [oneshot channel](https://docs.rs/futures/latest/futures/channel/oneshot/fn.channel.html), similar to how it is in rust:
+```hs
+oneshot :: () -> (~a, Future a)
+```
+
+Using this we can construct the following **deadlock** causing program:
+```rs
+let sender, reciever = channel()
+let value = reciever.await
+send(value, sender)
+```
+
+The issue here is that we were allowed to use both the sender *and* the reciever in the same scope.
+
+To make this **impossible** linear typing introduces *parallel structs*, a way to store multiple values that must be used entirely independently, often by construting seperate independent scopes.
+
+The simplest of these structures is called *par*, *par* (the parallel product) is to parallel structs what *tuple* (the normal product) is to regular structs.
+
+> The *par* of two types `a` and `b` is written `a || b`.
+
+<!-- The regular (conjunctive) product type will be written `a, b`. Its instances are comprised of two **entirely independent** values which you can do with as you please, this is the product type as you are used to it.
+
+The parallel (disjunctive) product type will be written `a || b`. Its instances are comprised of two **arbitrarily dependent** values which you must handle with care, restricting your options significantly, as you are forced by the rules of linear logic to disallow any form of interaction lest you introduce a deadlock.
+
+Both of these product types are commutative (there exists `a, b ~= b, a` and `a || b ~= b || a`). -->
+
+This lets us implement our original channel safely!:
+```hs
+oneshot :: () -> (~a || a)
+```
 
 As stated so far parallel structs are very limited, this is important for safety garuntees but I still need to explain what they *can* do, not just what they *can't* do.
 
@@ -173,21 +177,21 @@ Although it lacks the ability to be polled in custom ways.
 
 The typical way to formulate a mutable reference in a linearly typed system is to model it as a value-consumer pair:
 ```hs
-type InOut a = (a, ~a)
+type &inout a = (a, ~a)
 ```
 
 ...allowing you to modify by value, and send the result to the owner once you are done!
 
 In such a system borrowing has the following signature:
 ```hs
-borrowInOut :: a -> (InOut a || a)
+borrowInOut :: a -> (&inout a || a)
 ```
 
 --]]--
 
 ## Problem Statement
 
-Now let us consider the following program:
+We now have the context to analyse the following program with linear typing:
 ```rs
 let mut a = 1
 let mut b = 2
@@ -197,22 +201,23 @@ swap (&mut a) (&mut b)
 a + b
 ```
 
-Let us try and construct this with the tools above.
+Lets try to construct this with the tools above.
 
-- First we start with a pair of values `1, 2` of type `Int, Int`.
-- Next we can use `borrowInOut` on each to get `(InOut Int || Int), (InOut Int || Int)`.
-- Which we can feed into `link` getting `(InOut Int, InOut Int) || Int || Int`.
-- Now that both mutable references can be used together we can swap them and we are left with `Int || Int`.
+- We start with a pair of values `1, 2` of type `Int, Int`.
+- Next lets apply `borrowInOut` to each value to get `(InOut Int || Int), (InOut Int || Int)`.
+- This sets us up to use `link`, this modifies the state to `(InOut Int, InOut Int) || Int || Int`.
+- Both mutable references can now be used together so we can swap them, leaving us with `Int || Int`.
 - And from here... from here we are stuck.
 
-Our values are now in parallel and must be handled separately; there is no way to avoid this with current linear logic as the type system is blind to the following two things:
+Our values are now in parallel and must be handled separately, meaning we can't do the final step of adding them together.
+There is no way to avoid this with current linear typing as the type system is blind to the following two things:
 
-- The type `Int` has no way to *send* information to anything else in the program, and so there is no deadlock to be avoid by forcing them to be handled independently.
-- The line `swap (&mut a) (&mut b)` depends in no way on the line `a + b` or anything following it, there is a sequence to these operations.
+- The type `Int` has no way to *send* information to anything else in the program, and so there is no deadlock to be avoid by forcing integers to be handled independently.
+- The statement `swap (&mut a) (&mut b)` depends in no way on the statement `a + b`, there is an order to these operations.
 
-Current linear logic has no way to represent a *directed* flow of information and hence time.
+Current linear typing has no way to represent a *directed* flow of information and hence time.
 
-> It is this issue that I have now fixed.
+> It is this specific capacity, that I have now introduced!
 
 ## The Ingredients --[wip]--
 
@@ -220,34 +225,35 @@ Current linear logic has no way to represent a *directed* flow of information an
 
 ### The Chiral Product
 
-To fix this I will introduce a new chiral product type which will be written `a >> b`.
+The first thing to be added is the namesake of this blog, the chiral product!
 
-We will use this product type to describe *directed* flows of information. Where pairs of values in `a, b` must be independent, and those in `a || b` may be arbitrarily interdependent, pairs of values in `a >> b` can only be directionally dependent.
+The chiral product is like an inbetween of the tuple (`a, b`) and par (`a || b`), and will be written `a >> b`, read `a` *then* `b`.
 
-Specifically, the value on right right, which we will call the value in the *future*, may be dependent on the value on the left,
-but the value on the left, which we will call the *present* may **not** depend on the value on the right.
+Where the tuple holds values that don't communicate at all, and par holds values that may communicate arbitrarily, the chiral product has *directional* communication.
+The value on the left which we call the *present* can send information to the value on the right which we call the *future* but importantly, this does not go the other way around!
 
-*I call it the chiral product because unlike the disjunctive and conjunctive products, the chiral product is definitionally not commutative*
+> *The past may not depend on the future*.
 
-Said with our new terms:
-
-- The *future* may depend on the *present*.
-- But the *present* may **not** depend on the *future*.
-
-This allows more freedom in composition then par (`||`) as directed channels better avoid directed cycles:
+This ends up being incredibly useful, the tuples natural counterpart is par, and the natural counterpart of par is the tuple; they fit together nicely, one as computation, the other as data.
+The chiral product is interesting, its natural counterpart is... itself! This is codified in the following rule:
 ```hs
-weave :: (a >> b) -> (c >> d) -> (a, c) >> (b, d)
+weave :: ((a >> b), (c >> d)) -> ((a, c) >> (b, d))
 ```
 
 ### Purity --[wip]--
 
 Having to worry about forming deadlocks by adding two `Int`s together seems overly paranoid, but how do we formalise this?
 
-Let us define a new type `Pure a` consisting of all instances of `a` that have no capacity to *send* information to the rest of the program, if all instances of a type satisfy this property we call the type itself **pure**.
+In less *fun* type systems purity is considered a property of the whole language, this is often described as a garuntee that evaluating the same piece of code will always give the same result, we can express this as a property of values instead.
+A value is pure if it cannot communicate information to any other part of the program, it may have its own rich channel structure, but so long as it can't effect anything else its none of our concern.
 
-In our example `Int` is a **pure** type.
+We can now introduce our next ingredient, the `Pure` *modality*! 
 
---[details[--
+The type `Pure a` is inhabited by all the instances of `a`, that are **pure**, it really is that simple. Speaking of- we call a type **simple** of all of its instances are **pure**, making the type itself overlap entirely with the pure modality.
+
+In our example `Int` is a **simple** type.
+
+<!-- --[details[--
 
 **How can can you create `Pure` values?**
 
@@ -261,41 +267,58 @@ From smaller pure values and from pure processes that only take in pure values.
 
 Non-trivial pure instances tend to require a decent amount of effort to construct.
 
---]]--
+--]]-- -->
 
-Importantly, purity can persist into the future, as by definition the future can have no effect on the present:
+This tends to be a rather tricky property to create, so lets go over how it can be used!
+
+Purity can persist into the future, as by definition the future can have no effect on the present:
 ```hs
 depend :: Pure (a >> b) -> a >> Pure b
 ```
 
-This also goes the other way around, not only do product types tell us how we can use `Pure`, `Pure` can tell us how to refine the product types as so:
+The information that purity provides also allows us to refine our product types into more useful forms:
 ```hs
-sequence :: a || Pure b -> a >> Pure b
-isolate :: Pure a >> b -> a, b
+sequence :: (a || Pure b) -> (a >> Pure b)
+
+isolate :: (Pure a >> b) -> (Pure a, b)
 ```
+
+The `sequence` rule in particular can be combined with `oneshot` to create a strictly directed channel:
+```hs
+retain :: () -> (~(Pure a) >> Pure a)
+```
+
+Using this with `weave` lets us send pure values to the future without worry!
 
 ### Borrowing --[wip]--
 
-Finally we must replace our naive mutation type `InOut` with a primitive custom tailored to this system.
+Finally, what we have all *hopefully* been waiting for, the mutation handling!
+We can finally replace `&inout` with a primitive custom tailored to this system.
 
-The idea is to leverage what we have already to provide both contet and constraint to properly define safe mutation:
+We may get a mutable reference in the present, and the borrowed value will eventually be used again in the future:
 ```hs
-borrow :: a -> &mut a >> a
+borrow :: a -> (&mut a >> a)
+```
 
-mutate :: &mut a -> Pure (a -> b >> a) -> b
+We may mutate a borrowed value so long as the process is pure and the result is not dependent on the future value:
+```hs
+mutate :: (&mut a, Pure (a -> b >> a)) -> b
 ```
 
 > Shockingly this only takes two axioms.
 
-This signature of `mutate` ensures that impurities cannot be introduced to the value being modified, protecting the strict garuntees of the chiral product.
-This also means it is safe to treat a `&mut (Pure a)` as a `&mut a`, removing a potential function colouring issue.
-
-There is however one thing I must add as an axiom that I have not yet found a way to prove, and that is the swapping of pure values.
-In general the system cannot analyse *mutual* mutation, if anyone reading would wish to ponder this I would be very greatful.
-For now the following must be added as axiom:
+The signature of `mutate` ensures that impurities cannot be introduced to the value being modified, this keeps the strict garuntees of the chiral product producted agains sneaky deadlocks.
+This also means it is safe to treat a `&mut (Pure a)` as a `&mut a`, removing a potential function colouring issue that we can codify with a 3rd and final mutation axiom:
 ```hs
-swap :: &mut (Pure a), &mut (Pure a) -> ()
+demote :: &mut (Pure a) -> &mut a
 ```
+
+Although this is hardly the snazziest thing one can do with a `&mut (Pure a)`, by using a `retain` channel to satisfy `mutate` we can extract both the old value and a consumer to send the value to the future. If this sounds familiar, thats because its precisely `&inout`:
+```hs
+inout :: &mut (Pure a) -> &inout (Pure a)
+```
+
+This means that for pure values `&mut` and `&inout` are essentially the same, simplifying operations dramatically.
 
 --[details[--
 
@@ -308,7 +331,7 @@ It may perhaps be correct to generalise the `mutate` rule to accept a product of
 The following allows orthogonal mutations:
 
 ```hs
-mutate_pair :: &mut a0, &mut a1 -> Pure (a0, a1 -> b >> (a0, a1)) -> b
+mutate_pair :: (&mut a0, &mut a1) -> (Pure (a0, a1 -> b >> (a0, a1)) -> b)
 ```
 
 But introduces deadlocks, as one mutable reference may outlive the other with no way to tell.
@@ -316,7 +339,7 @@ But introduces deadlocks, as one mutable reference may outlive the other with no
 We could introduce an alternative definition:
 
 ```hs
-mutate_pair :: &mut a0, &mut a1 -> Pure (a0 || a1 -> b >> (a0 || a1)) -> b
+mutate_pair :: (&mut a0, &mut a1) -> (Pure (a0 || a1 -> b >> (a0 || a1)) -> b)
 ```
 
 However this, despite being more restrictive, this is still unsafe!
@@ -324,10 +347,10 @@ However this, despite being more restrictive, this is still unsafe!
 The issue is we have no clue how these mutable references relate to each other, it not safe to consume them assuming they are conjunctive and its not safe to update them assuming they are disjunctive, the only safe implementation is:
 
 ```hs
-mutate_pair :: &mut a0, &mut a1 -> Pure (a0 || a1 -> b >> (a0, a1)) -> b
+mutate_pair :: (&mut a0, &mut a1) -> (Pure (a0 || a1 -> b >> (a0, a1)) -> b)
 ```
 
-Which is so restrictive as to be a joke, nonetheless this is the best I can come up with.
+Which is so restrictive as to be a joke, and I don't think it gets you anything over single mutations, nonetheless this is the best I can come up with.
 
 --]]--
 
